@@ -1,0 +1,140 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>{{ title }}</h2>
+        <a href="{{ url_for('admin.blog_posts') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Blog
+        </a>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="title">Title <span class="required">*</span></label>
+                {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="Enter post title") }}
+                {% if form.title.errors %}
+                    <div class="invalid-feedback">{{ form.title.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="slug">Slug (URL)</label>
+                {{ form.slug(class="form-control" + (" is-invalid" if form.slug.errors else ""), placeholder="auto-generated-from-title") }}
+                {% if form.slug.errors %}
+                    <div class="invalid-feedback">{{ form.slug.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">Leave blank to auto-generate from title.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="excerpt">Excerpt</label>
+                {{ form.excerpt(class="form-control" + (" is-invalid" if form.excerpt.errors else ""), rows="2", placeholder="Brief summary of the post...") }}
+                {% if form.excerpt.errors %}
+                    <div class="invalid-feedback">{{ form.excerpt.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="content">Content <span class="required">*</span></label>
+                {{ form.content(class="form-control" + (" is-invalid" if form.content.errors else ""), rows="10", placeholder="Write your post content here...") }}
+                {% if form.content.errors %}
+                    <div class="invalid-feedback">{{ form.content.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">HTML tags are allowed. Use proper formatting.</small>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    {{ form.category(class="form-control" + (" is-invalid" if form.category.errors else ""), placeholder="e.g., Weddings, Tips, News") }}
+                    {% if form.category.errors %}
+                        <div class="invalid-feedback">{{ form.category.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="tags">Tags</label>
+                    {{ form.tags(class="form-control" + (" is-invalid" if form.tags.errors else ""), placeholder="wedding, decoration, tips") }}
+                    {% if form.tags.errors %}
+                        <div class="invalid-feedback">{{ form.tags.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Comma separated tags.</small>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="author">Author</label>
+                    {{ form.author(class="form-control" + (" is-invalid" if form.author.errors else ""), placeholder="THABZO EVENTS") }}
+                    {% if form.author.errors %}
+                        <div class="invalid-feedback">{{ form.author.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="published_at">Publish Date</label>
+                    {{ form.published_at(class="form-control" + (" is-invalid" if form.published_at.errors else ""), placeholder="YYYY-MM-DD HH:MM") }}
+                    {% if form.published_at.errors %}
+                        <div class="invalid-feedback">{{ form.published_at.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Leave blank to use current date/time.</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="featured_image">Featured Image</label>
+                {% if post and post.featured_image %}
+                    <div class="current-image">
+                        <img src="{{ url_for('static', filename=post.featured_image) }}" alt="Current featured image" style="max-width: 200px; border-radius: 8px;">
+                        <p class="text-muted"><small>Current featured image. Upload a new one to replace it.</small></p>
+                    </div>
+                {% endif %}
+                {{ form.featured_image(class="form-control-file" + (" is-invalid" if form.featured_image.errors else "")) }}
+                {% if form.featured_image.errors %}
+                    <div class="invalid-feedback">{{ form.featured_image.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">Recommended size: 1200x630px. Allowed formats: JPG, PNG, GIF, WEBP.</small>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="is_published">Status</label>
+                    <div class="form-check">
+                        {{ form.is_published(class="form-check-input") }}
+                        <label class="form-check-label" for="is_published">Published</label>
+                    </div>
+                    {% if form.is_published.errors %}
+                        <div class="invalid-feedback">{{ form.is_published.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Unpublished posts are only visible in admin.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="is_featured">Featured Post</label>
+                    <div class="form-check">
+                        {{ form.is_featured(class="form-check-input") }}
+                        <label class="form-check-label" for="is_featured">Featured</label>
+                    </div>
+                    {% if form.is_featured.errors %}
+                        <div class="invalid-feedback">{{ form.is_featured.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Featured posts appear prominently on the homepage.</small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> {{ 'Update' if post else 'Publish' }} Post
+                </button>
+                <a href="{{ url_for('admin.blog_posts') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

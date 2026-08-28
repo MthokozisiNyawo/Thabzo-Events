@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin - THABZO EVENTS{% endblock %}</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- FullCalendar for Booking Calendar -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=3.0">
+
+    <style>
+        /* Dropdown sidebar styles */
+        .nav-item.has-dropdown > a {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-item.has-dropdown > a .dropdown-arrow {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+            font-size: 12px;
+        }
+
+        .nav-item.has-dropdown.open > a .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .nav-item .sub-nav {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+            opacity: 0;
+            padding: 0;
+            list-style: none;
+            margin: 0;
+        }
+
+        .nav-item.open .sub-nav {
+            max-height: 500px;
+            opacity: 1;
+            padding: 4px 0;
+        }
+
+        .nav-item .sub-nav li {
+            margin: 0;
+        }
+
+        .nav-item .sub-nav li a {
+            padding: 8px 16px 8px 48px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 13px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item .sub-nav li a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-item .sub-nav li.active a {
+            color: #fff;
+            background: rgba(108, 92, 231, 0.3);
+        }
+
+        .nav-item .sub-nav li a i {
+            font-size: 14px;
+            width: 20px;
+            text-align: center;
+            opacity: 0.6;
+        }
+
+        .nav-item .sub-nav li.active a i {
+            opacity: 1;
+        }
+
+        /* Badge styles */
+        .nav-item .badge {
+            margin-left: auto;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .badge-danger {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .badge-warning {
+            background: #f39c12;
+            color: #fff;
+        }
+
+        .badge-success {
+            background: #2ecc71;
+            color: #fff;
+        }
+
+        .badge-info {
+            background: #3498db;
+            color: #fff;
+        }
+
+        /* Sidebar scroll */
+        .admin-sidebar {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .admin-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Divider */
+        .nav-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 8px 16px;
+        }
+
+        /* Section label */
+        .nav-section-label {
+            padding: 12px 16px 6px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-item .sub-nav li a {
+                padding: 10px 16px 10px 40px;
+                font-size: 14px;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-brand">
+                    <i class="fas fa-paint-brush"></i>
+                    <span>THABZO</span>
+                    <small>EVENTS</small>
+                </a>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">{{ current_user.full_name or current_user.username }}</div>
+                    <div class="user-role">{{ current_user.role|capitalize }}</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <!-- Dashboard -->
+                    <li class="nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                        <a href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+
+                    <!-- Users & Communications -->
+                    <li class="nav-section-label">Management</li>
+
+                    <li class="nav-item {% if request.endpoint == 'admin.users' %}active{% endif %}">
+                        <a href="{{ url_for('admin.users') }}">
+                            <i class="fas fa-users"></i>
+                            <span>Users</span>
+                            <span class="badge badge-info">{{ total_users|default(0) }}</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item has-dropdown {% if request.endpoint in ['admin.inquiries', 'admin.inquiry_detail', 'admin.bookings', 'admin.booking_detail', 'admin.booking_calendar'] %}open{% endif %}">
+                        <a onclick="toggleDropdown(this)">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Bookings & Inquiries</span>
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <ul class="sub-nav">
+                            <li class="{% if request.endpoint in ['admin.inquiries', 'admin.inquiry_detail'] %}active{% endif %}">
+                                <a href="{{ url_for('admin.inquiries') }}">
+                                    <i class="fas fa-envelope"></i>
+                                    Inquiries
+                                    <span class="badge badge-danger">{{ new_inquiries|default(0) }}</span>
+                                </a>
+                            </li>
+                            <li class="{% if request.endpoint in ['admin.bookings', 'admin.booking_detail'] %}active{% endif %}">
+                                <a href="{{ url_for('admin.bookings') }}">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Bookings
+                                    <span class="badge badge-warning">{{ pending_bookings|default(0) }}</span>
+                                </a>
+                            </li>
+                            <li class="{% if request.endpoint == 'admin.booking_calendar' %}active{% endif %}">
+                                <a href="{{ url_for('admin.booking_calendar') }}">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Calendar
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Content Management -->
+                    <li class="nav-section-label">Content</li>
+
+                    <li class="nav-item has-dropdown {% if request.endpoint in ['admin.gallery', 'admin.albums', 'admin.add_album', 'admin.edit_album', 'admin.view_album'] %}open{% endif %}">
+                        <a onclick="toggleDropdown(this)">
+                            <i class="fas fa-images"></i>
+                            <span>Media</span>
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <ul class="sub-nav">
+                            <li class="{% if request.endpoint == 'admin.gallery' %}active{% endif %}">
+                                <a href="{{ url_for('admin.gallery') }}">
+                                    <i class="fas fa-images"></i>
+                                    Gallery
+                                </a>
+                            </li>
+                            <li class="{% if request.endpoint in ['admin.albums', 'admin.add_album', 'admin.edit_album', 'admin.view_album'] %}active{% endif %}">
+                                <a href="{{ url_for('admin.albums') }}">
+                                    <i class="fas fa-folder-open"></i>
+                                    Albums
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item {% if request.endpoint in ['admin.team', 'admin.add_team_member', 'admin.edit_team_member'] %}active{% endif %}">
+                        <a href="{{ url_for('admin.team') }}">
+                            <i class="fas fa-users-cog"></i>
+                            <span>Team</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if request.endpoint == 'admin.testimonials' %}active{% endif %}">
+                        <a href="{{ url_for('admin.testimonials') }}">
+                            <i class="fas fa-star"></i>
+                            <span>Testimonials</span>
+                            <span class="badge badge-warning">{{ pending_testimonials|default(0) }}</span>
+                        </a>
+                    </li>
+
+                    <!-- Services & Products -->
+                    <li class="nav-section-label">Services</li>
+
+                    <li class="nav-item has-dropdown {% if request.endpoint in ['admin.services', 'admin.service_levels', 'admin.add_service_level', 'admin.edit_service_level'] %}open{% endif %}">
+                        <a onclick="toggleDropdown(this)">
+                            <i class="fas fa-concierge-bell"></i>
+                            <span>Services</span>
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <ul class="sub-nav">
+                            <li class="{% if request.endpoint == 'admin.services' %}active{% endif %}">
+                                <a href="{{ url_for('admin.services') }}">
+                                    <i class="fas fa-concierge-bell"></i>
+                                    Services
+                                </a>
+                            </li>
+                            <li class="{% if request.endpoint in ['admin.service_levels', 'admin.add_service_level', 'admin.edit_service_level'] %}active{% endif %}">
+                                <a href="{{ url_for('admin.service_levels') }}">
+                                    <i class="fas fa-layer-group"></i>
+                                    Service Levels
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item {% if request.endpoint in ['admin.categories', 'admin.add_category', 'admin.edit_category'] %}active{% endif %}">
+                        <a href="{{ url_for('admin.categories') }}">
+                            <i class="fas fa-tags"></i>
+                            <span>Categories</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if request.endpoint in ['admin.budget_ranges', 'admin.add_budget_range', 'admin.edit_budget_range'] %}active{% endif %}">
+                        <a href="{{ url_for('admin.budget_ranges') }}">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Budget Ranges</span>
+                        </a>
+                    </li>
+
+                    <!-- Blog & FAQs -->
+                    <li class="nav-section-label">Content</li>
+
+                    <li class="nav-item {% if request.endpoint in ['admin.blog_posts', 'admin.add_blog_post', 'admin.edit_blog_post'] %}active{% endif %}">
+                        <a href="{{ url_for('admin.blog_posts') }}">
+                            <i class="fas fa-newspaper"></i>
+                            <span>Blog</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if request.endpoint in ['admin.faqs', 'admin.add_faq', 'admin.edit_faq'] %}active{% endif %}">
+                        <a href="{{ url_for('admin.faqs') }}">
+                            <i class="fas fa-question-circle"></i>
+                            <span>FAQs</span>
+                        </a>
+                    </li>
+
+                    <!-- Subscribers & Notifications -->
+                    <li class="nav-section-label">System</li>
+
+                    <li class="nav-item {% if request.endpoint == 'admin.subscribers' %}active{% endif %}">
+                        <a href="{{ url_for('admin.subscribers') }}">
+                            <i class="fas fa-envelope-open-text"></i>
+                            <span>Subscribers</span>
+                            <span class="badge badge-success">{{ active_subscribers|default(0) }}</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if request.endpoint == 'admin.notifications' %}active{% endif %}">
+                        <a href="{{ url_for('admin.notifications') }}">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                            <span class="badge badge-danger">{{ unread_notifications|default(0) }}</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if request.endpoint == 'admin.activity_logs' %}active{% endif %}">
+                        <a href="{{ url_for('admin.activity_logs') }}">
+                            <i class="fas fa-history"></i>
+                            <span>Activity Logs</span>
+                        </a>
+                    </li>
+
+                    <!-- Settings & Profile -->
+                    <li class="nav-divider"></li>
+
+                    {% if current_user.role == 'admin' %}
+                    <li class="nav-item {% if request.endpoint == 'admin.settings' %}active{% endif %}">
+                        <a href="{{ url_for('admin.settings') }}">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="nav-item {% if request.endpoint == 'admin.profile' %}active{% endif %}">
+                        <a href="{{ url_for('admin.profile') }}">
+                            <i class="fas fa-user"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-divider"></li>
+
+                    <li class="nav-item">
+                        <a href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <div class="topbar-left">
+                    <button class="topbar-toggle" id="topbarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="topbar-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                </div>
+                <div class="topbar-right">
+                    <a href="{{ url_for('admin.notifications') }}" class="topbar-btn" title="Notifications" style="position: relative;">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge badge-danger" style="position: absolute; top: -5px; right: -5px; font-size: 10px; padding: 2px 6px; border-radius: 50%;">
+                            {{ unread_notifications|default(0) }}
+                        </span>
+                    </a>
+                    <a href="{{ url_for('main.index') }}" target="_blank" class="topbar-btn" title="View Website">
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    <div class="topbar-user">
+                        <span>{{ current_user.username }}</span>
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                            {{ message }}
+                            <button type="button" class="alert-close" data-dismiss="alert">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="admin-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}?v=3.0"></script>
+
+    <script>
+    // Dropdown toggle function
+    function toggleDropdown(element) {
+        var navItem = element.closest('.has-dropdown');
+        if (navItem) {
+            navItem.classList.toggle('open');
+
+            // Store state in localStorage
+            var dropdownId = navItem.querySelector('span')?.textContent?.trim() || 'dropdown';
+            var isOpen = navItem.classList.contains('open');
+            localStorage.setItem('sidebar_' + dropdownId, isOpen);
+        }
+        event.preventDefault();
+    }
+
+    // Restore dropdown states on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        var dropdowns = document.querySelectorAll('.has-dropdown');
+        dropdowns.forEach(function(dropdown) {
+            var label = dropdown.querySelector('span')?.textContent?.trim();
+            if (label) {
+                var isOpen = localStorage.getItem('sidebar_' + label);
+                if (isOpen === 'true') {
+                    dropdown.classList.add('open');
+                }
+            }
+        });
+
+        // Close other dropdowns when one is opened (optional)
+        document.querySelectorAll('.has-dropdown > a').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                var current = this.closest('.has-dropdown');
+                var isOpen = current.classList.contains('open');
+
+                // Close other dropdowns in the same section
+                var parent = current.closest('ul');
+                if (parent) {
+                    parent.querySelectorAll('.has-dropdown').forEach(function(item) {
+                        if (item !== current) {
+                            item.classList.remove('open');
+                            var label = item.querySelector('span')?.textContent?.trim();
+                            if (label) {
+                                localStorage.setItem('sidebar_' + label, 'false');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    });
+
+    // Handle sidebar toggle for mobile
+    document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+        document.getElementById('adminSidebar').classList.toggle('collapsed');
+    });
+
+    document.getElementById('topbarToggle')?.addEventListener('click', function() {
+        document.getElementById('adminSidebar').classList.toggle('collapsed');
+    });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,305 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>{{ title }}</h2>
+        <a href="{{ url_for('admin.albums') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Albums
+        </a>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() if form else '' }}
+
+            {% if album and album.cover_image %}
+            <div class="current-image">
+                <label>Current Cover Image</label>
+                <br>
+                <img src="{{ url_for('static', filename=album.cover_image.filepath) }}" alt="{{ album.name }}" style="max-width: 200px; max-height: 150px; border-radius: 8px; object-fit: cover;">
+                <p class="text-muted"><small>Upload a new cover image to replace it.</small></p>
+            </div>
+            {% endif %}
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name">Event Name <span class="required">*</span></label>
+                    {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="e.g., Elegant Wedding at Jozini Estate") }}
+                    {% if form.name.errors %}
+                        <div class="invalid-feedback">{{ form.name.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="slug">Slug (URL)</label>
+                    {{ form.slug(class="form-control" + (" is-invalid" if form.slug.errors else ""), placeholder="auto-generated from name") }}
+                    {% if form.slug.errors %}
+                        <div class="invalid-feedback">{{ form.slug.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Leave blank to auto-generate from name.</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="4", placeholder="Describe this event album...") }}
+                {% if form.description.errors %}
+                    <div class="invalid-feedback">{{ form.description.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="event_type">Event Type</label>
+                    {{ form.event_type(class="form-control" + (" is-invalid" if form.event_type.errors else ""), placeholder="e.g., Wedding, Corporate Event, Baby Shower") }}
+                    {% if form.event_type.errors %}
+                        <div class="invalid-feedback">{{ form.event_type.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Optional: Categorize this album by event type.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="event_date">Event Date</label>
+                    {{ form.event_date(class="form-control" + (" is-invalid" if form.event_date.errors else ""), type="date") }}
+                    {% if form.event_date.errors %}
+                        <div class="invalid-feedback">{{ form.event_date.errors[0] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="cover_image">Cover Image</label>
+                {{ form.cover_image(class="form-control-file" + (" is-invalid" if form.cover_image.errors else "")) }}
+                {% if form.cover_image.errors %}
+                    <div class="invalid-feedback">{{ form.cover_image.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">Recommended size: 1200x800px. Allowed formats: JPG, PNG, GIF, WEBP.</small>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="display_order">Display Order</label>
+                    {{ form.display_order(class="form-control" + (" is-invalid" if form.display_order.errors else ""), placeholder="0") }}
+                    {% if form.display_order.errors %}
+                        <div class="invalid-feedback">{{ form.display_order.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Lower numbers appear first.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="is_active">Status</label>
+                    <div class="form-check">
+                        {{ form.is_active(class="form-check-input") }}
+                        <label class="form-check-label" for="is_active">Active</label>
+                    </div>
+                    {% if form.is_active.errors %}
+                        <div class="invalid-feedback">{{ form.is_active.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Active albums appear on the website.</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-check">
+                    {{ form.is_featured(class="form-check-input") }}
+                    <label class="form-check-label" for="is_featured">Featured Album</label>
+                </div>
+                {% if form.is_featured.errors %}
+                    <div class="invalid-feedback">{{ form.is_featured.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">Featured albums appear on the homepage.</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> {{ 'Update' if album else 'Save' }} Album
+                </button>
+                <a href="{{ url_for('admin.albums') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.form-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--admin-secondary, #2d3436);
+    margin: 0;
+}
+
+.form-card {
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: var(--admin-text, #2d3436);
+}
+
+.form-group label .required {
+    color: #e74c3c;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--admin-border, #dfe6e9);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    background: var(--admin-card-bg, #ffffff);
+    color: var(--admin-text, #2d3436);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 3px rgba(108,92,231,0.1);
+}
+
+.form-control-file {
+    padding: 10px 0;
+}
+
+.form-text {
+    display: block;
+    font-size: 13px;
+    color: var(--admin-text-light, #636e72);
+    margin-top: 4px;
+}
+
+.invalid-feedback {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 4px;
+    display: block;
+}
+
+.current-image {
+    margin-bottom: 16px;
+}
+
+.current-image label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--admin-text, #2d3436);
+}
+
+.current-image .text-muted {
+    color: var(--admin-text-light, #636e72);
+    margin-top: 8px;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-check-label {
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--admin-border, #dfe6e9);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background: #6c5ce7;
+    color: #fff;
+    border-color: #6c5ce7;
+}
+
+.btn-primary:hover {
+    background: #5f3dc4;
+    border-color: #5f3dc4;
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    color: var(--admin-secondary, #2d3436);
+    border-color: var(--admin-border, #dfe6e9);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--admin-bg, #f5f6fa);
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-card {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ title }} - Admin{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="admin-section">
+    <div class="form-wrapper">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="label">Budget Range Label <span class="required">*</span></label>
+                {{ form.label(class="form-control", placeholder="e.g., R5,000 - R10,000") }}
+                {% if form.label.errors %}
+                    <div class="invalid-feedback d-block">{{ form.label.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">This is what users will see in the dropdown</small>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="min_amount">Minimum Amount (R)</label>
+                    {{ form.min_amount(class="form-control", placeholder="e.g., 5000", step="0.01") }}
+                    {% if form.min_amount.errors %}
+                        <div class="invalid-feedback d-block">{{ form.min_amount.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Optional - used for filtering</small>
+                </div>
+
+                <div class="form-group half">
+                    <label for="max_amount">Maximum Amount (R)</label>
+                    {{ form.max_amount(class="form-control", placeholder="e.g., 10000", step="0.01") }}
+                    {% if form.max_amount.errors %}
+                        <div class="invalid-feedback d-block">{{ form.max_amount.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Optional - used for filtering</small>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="display_order">Display Order</label>
+                    {{ form.display_order(class="form-control") }}
+                    {% if form.display_order.errors %}
+                        <div class="invalid-feedback d-block">{{ form.display_order.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Lower numbers appear first in the dropdown</small>
+                </div>
+
+                <div class="form-group half">
+                    <div class="form-check" style="margin-top: 32px;">
+                        {{ form.is_active(class="form-check-input") }}
+                        <label class="form-check-label" for="is_active">Active</label>
+                    </div>
+                    <small class="form-text text-muted">Inactive ranges won't appear in the form</small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> {{ 'Update' if budget_range else 'Add' }} Budget Range
+                </button>
+                <a href="{{ url_for('admin.budget_ranges') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-wrapper {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    max-width: 800px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group .required {
+    color: #e74c3c;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-row .half {
+    flex: 1;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #6c5ce7;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1);
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-check-label {
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.form-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #6c5ce7;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #5a4bd1;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #ccc;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-wrapper {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,386 @@
+/*
+THABZO EVENTS - Client Sidebar Styles
+Version: 6.0
+*/
+
+/* ========================================
+   SIDEBAR VARIABLES
+   ======================================== */
+:root {
+    --sidebar-width: 280px;
+    --sidebar-collapsed: 70px;
+    --header-height: 70px;
+}
+
+/* ========================================
+   SIDEBAR
+   ======================================== */
+.client-sidebar {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background: var(#000000);
+    border-right: 1px solid var(--client-border, #e0e0e0);
+    padding: 20px 0;
+    overflow-y: auto;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 999;
+}
+
+/* Collapsed State */
+.client-sidebar.collapsed {
+    width: var(--sidebar-collapsed);
+}
+
+.client-sidebar.collapsed .sidebar-link span,
+.client-sidebar.collapsed .sidebar-label {
+    display: none;
+}
+
+.client-sidebar.collapsed .sidebar-link {
+    justify-content: center;
+    padding: 12px;
+}
+
+.client-sidebar.collapsed .sidebar-link i {
+    margin-right: 0;
+    font-size: 20px;
+}
+
+.client-sidebar.collapsed .sidebar-divider {
+    display: none;
+}
+
+.client-sidebar.collapsed .sidebar-brand {
+    padding: 0 10px 15px;
+}
+
+.client-sidebar.collapsed .sidebar-brand h4 {
+    font-size: 14px;
+}
+
+.client-sidebar.collapsed .sidebar-brand small {
+    display: none;
+}
+
+/* Sidebar Brand */
+.client-sidebar .sidebar-brand {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--client-border, #e0e0e0);
+    margin-bottom: 15px;
+}
+
+.client-sidebar .sidebar-brand h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--client-secondary, #2d3436);
+}
+
+.client-sidebar .sidebar-brand small {
+    font-size: 12px;
+    color: var(--client-text-light, #636e72);
+    display: block;
+    margin-top: 2px;
+}
+
+/* Sidebar Navigation */
+.client-sidebar .sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.client-sidebar .sidebar-nav li {
+    margin: 2px 0;
+}
+
+/* Sidebar Links */
+.client-sidebar .sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    color: var(--client-text-light, #636e72);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    font-size: 14px;
+    font-weight: 500;
+    position: relative;
+}
+
+.client-sidebar .sidebar-link:hover {
+    background: var(--client-bg, #f0f2f5);
+    color: var(--client-secondary, #2d3436);
+}
+
+.client-sidebar .sidebar-link.active {
+    background: var(--client-primary-light, #f0edff);
+    color: var(--client-primary, #6c5ce7);
+    border-left-color: var(--client-primary, #6c5ce7);
+}
+
+.client-sidebar .sidebar-link i {
+    width: 24px;
+    margin-right: 12px;
+    font-size: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.client-sidebar .sidebar-link .badge {
+    margin-left: auto;
+    background: var(--client-primary, #6c5ce7);
+    color: #ffffff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: var(--client-radius-full, 50px);
+    font-weight: 700;
+}
+
+.client-sidebar .sidebar-link .badge-success {
+    background: #00b894;
+}
+
+.client-sidebar .sidebar-link .badge-danger {
+    background: #e74c3c;
+}
+
+.client-sidebar .sidebar-link .badge-warning {
+    background: #f39c12;
+}
+
+/* Sidebar Divider */
+.client-sidebar .sidebar-divider {
+    height: 1px;
+    background: var(--client-border, #e0e0e0);
+    margin: 12px 20px;
+}
+
+/* Sidebar Label */
+.client-sidebar .sidebar-label {
+    padding: 0 20px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--client-text-lighter, #b2bec3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 10px 0 6px;
+    display: block;
+}
+
+/* Sidebar Footer */
+.client-sidebar .sidebar-footer {
+    padding: 15px 20px;
+    border-top: 1px solid var(--client-border, #e0e0e0);
+    margin-top: 15px;
+}
+
+.client-sidebar .sidebar-footer .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.client-sidebar .sidebar-footer .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--client-primary, #6c5ce7);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.client-sidebar .sidebar-footer .user-details {
+    flex: 1;
+    overflow: hidden;
+}
+
+.client-sidebar .sidebar-footer .user-details .name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--client-secondary, #2d3436);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.client-sidebar .sidebar-footer .user-details .role {
+    font-size: 12px;
+    color: var(--client-text-light, #636e72);
+}
+
+/* ========================================
+   MOBILE SIDEBAR
+   ======================================== */
+@media (max-width: 992px) {
+    .client-sidebar {
+        transform: translateX(-100%);
+        width: var(--sidebar-width);
+        box-shadow: var(--client-shadow, 0 2px 8px rgba(0,0,0,0.08));
+    }
+
+    .client-sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .client-sidebar.collapsed {
+        width: var(--sidebar-width);
+    }
+
+    .client-sidebar.collapsed .sidebar-link span,
+    .client-sidebar.collapsed .sidebar-label {
+        display: inline;
+    }
+
+    .client-sidebar.collapsed .sidebar-link {
+        justify-content: flex-start;
+        padding: 10px 20px;
+    }
+
+    .client-sidebar.collapsed .sidebar-link i {
+        margin-right: 12px;
+        font-size: 18px;
+    }
+
+    .client-sidebar.collapsed .sidebar-divider {
+        display: block;
+    }
+
+    .client-sidebar.collapsed .sidebar-brand {
+        padding: 0 20px 20px;
+    }
+
+    .client-sidebar.collapsed .sidebar-brand h4 {
+        font-size: 18px;
+    }
+
+    .client-sidebar.collapsed .sidebar-brand small {
+        display: block;
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 998;
+        animation: overlayFade 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    @keyframes overlayFade {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+}
+
+/* ========================================
+   SIDEBAR ANIMATIONS
+   ======================================== */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+.client-sidebar.mobile-open {
+    animation: slideIn 0.3s ease forwards;
+}
+
+.client-sidebar.mobile-closing {
+    animation: slideOut 0.3s ease forwards;
+}
+
+/* ========================================
+   SIDEBAR SCROLLBAR
+   ======================================== */
+.client-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.client-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.client-sidebar::-webkit-scrollbar-thumb {
+    background: var(--client-border, #e0e0e0);
+    border-radius: 4px;
+}
+
+.client-sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--client-text-lighter, #b2bec3);
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+    .client-sidebar,
+    .client-sidebar .sidebar-link,
+    .client-sidebar.mobile-open,
+    .client-sidebar.mobile-closing {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .sidebar-overlay {
+        animation: none !important;
+    }
+}
+
+/* Focus Styles */
+.client-sidebar .sidebar-link:focus-visible {
+    outline: 2px solid var(--client-primary, #6c5ce7);
+    outline-offset: -2px;
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+@media print {
+    .client-sidebar {
+        display: none !important;
+    }
+
+    .sidebar-overlay {
+        display: none !important;
+    }
+}

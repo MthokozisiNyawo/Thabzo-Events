@@ -1,0 +1,546 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>{{ title }}</h2>
+        <div>
+            <a href="{{ url_for('admin.service_levels') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Levels
+            </a>
+            <a href="{{ url_for('admin.services') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-concierge-bell"></i> Services
+            </a>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name">Level Name <span class="required">*</span></label>
+                    <div class="level-name-selector">
+                        <select id="levelNameSelect" class="form-control" style="margin-bottom: 8px;">
+                            <option value="">-- Select a predefined level --</option>
+                            <option value="Platinum">⭐ Platinum</option>
+                            <option value="Gold">🥇 Gold</option>
+                            <option value="Silver">🥈 Silver</option>
+                            <option value="Bronze">🥉 Bronze</option>
+                            <option value="Diamond">💎 Diamond</option>
+                            <option value="Premium">🌟 Premium</option>
+                            <option value="Deluxe">✨ Deluxe</option>
+                            <option value="Luxury">👑 Luxury</option>
+                            <option value="Basic">📋 Basic</option>
+                            <option value="Standard">📋 Standard</option>
+                            <option value="Executive">💼 Executive</option>
+                            <option value="VIP">🎯 VIP</option>
+                            <option value="Elite">🏆 Elite</option>
+                            <option value="Signature">✍️ Signature</option>
+                            <option value="Royal">👑 Royal</option>
+                            <option value="Custom">✏️ Custom (type below)</option>
+                        </select>
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="Enter level name", id="levelNameInput") }}
+                    </div>
+                    {% if form.name.errors %}
+                        <div class="invalid-feedback">{{ form.name.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text">Select a predefined level or type a custom name.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="slug">Slug (URL) <span class="required">*</span></label>
+                    {{ form.slug(class="form-control" + (" is-invalid" if form.slug.errors else ""), placeholder="e.g., platinum") }}
+                    {% if form.slug.errors %}
+                        <div class="invalid-feedback">{{ form.slug.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text">Lowercase letters, numbers, and hyphens only.</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="3", placeholder="Describe what this level includes...") }}
+                {% if form.description.errors %}
+                    <div class="invalid-feedback">{{ form.description.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="service_id">Service <span class="required">*</span></label>
+                {{ form.service_id(class="form-control" + (" is-invalid" if form.service_id.errors else "")) }}
+                {% if form.service_id.errors %}
+                    <div class="invalid-feedback">{{ form.service_id.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text">Select which service this level belongs to.</small>
+                {% if request.args.get('service_id') %}
+                    <div class="alert alert-info" style="margin-top: 8px; padding: 8px 12px; border-radius: 6px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+                        <i class="fas fa-info-circle"></i> This level will be added to the selected service.
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="price">Price (R)</label>
+                    {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), placeholder="15000") }}
+                    {% if form.price.errors %}
+                        <div class="invalid-feedback">{{ form.price.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text">Leave blank for "Contact for pricing".</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="discount_percentage">Discount Percentage</label>
+                    {{ form.discount_percentage(class="form-control" + (" is-invalid" if form.discount_percentage.errors else ""), placeholder="10") }}
+                    {% if form.discount_percentage.errors %}
+                        <div class="invalid-feedback">{{ form.discount_percentage.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text">Optional discount percentage for this level.</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="features">Features (comma separated)</label>
+                {{ form.features(class="form-control" + (" is-invalid" if form.features.errors else ""), rows="3", placeholder="Full decoration, Floral arrangements, Lighting design, Custom backdrop") }}
+                {% if form.features.errors %}
+                    <div class="invalid-feedback">{{ form.features.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text">Enter each feature separated by a comma.</small>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="icon">Icon Class</label>
+                    {{ form.icon(class="form-control" + (" is-invalid" if form.icon.errors else ""), placeholder="fa-crown") }}
+                    {% if form.icon.errors %}
+                        <div class="invalid-feedback">{{ form.icon.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text">FontAwesome icon class (e.g., fa-crown, fa-star, fa-diamond).</small>
+                    <div class="icon-preview">
+                        <span>Preview: </span>
+                        <i class="fas {{ form.icon.data or 'fa-crown' }}" id="iconPreview" style="color: {{ form.color.data or '#6c5ce7' }};"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="color">Color</label>
+                    {{ form.color(class="form-control" + (" is-invalid" if form.color.errors else ""), placeholder="#FFD700") }}
+                    {% if form.color.errors %}
+                        <div class="invalid-feedback">{{ form.color.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text">Hex color code (e.g., #FFD700) or color name.</small>
+                    <div class="color-preview">
+                        <span>Preview: </span>
+                        <span class="color-swatch" id="colorPreview" style="background-color: {{ form.color.data or '#6c5ce7' }}; width: 30px; height: 30px; border-radius: 4px; display: inline-block; border: 2px solid #ddd;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="display_order">Display Order</label>
+                    {{ form.display_order(class="form-control" + (" is-invalid" if form.display_order.errors else ""), placeholder="0") }}
+                    {% if form.display_order.errors %}
+                        <div class="invalid-feedback">{{ form.display_order.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text">Lower numbers appear first.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="is_featured">Featured Level</label>
+                    <div class="form-check">
+                        {{ form.is_featured(class="form-check-input") }}
+                        <label class="form-check-label" for="is_featured">
+                            <i class="fas fa-star" style="color: #fdcb6e;"></i> Featured
+                        </label>
+                    </div>
+                    {% if form.is_featured.errors %}
+                        <div class="invalid-feedback">{{ form.is_featured.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text">Featured levels appear prominently on the website.</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="is_active">Status</label>
+                <div class="form-check">
+                    {{ form.is_active(class="form-check-input") }}
+                    <label class="form-check-label" for="is_active">
+                        {% if form.is_active.data %}
+                            <span class="status-badge status-active">Active</span>
+                        {% else %}
+                            <span class="status-badge status-inactive">Inactive</span>
+                        {% endif %}
+                    </label>
+                </div>
+                {% if form.is_active.errors %}
+                    <div class="invalid-feedback">{{ form.is_active.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text">Inactive levels won't appear on the website.</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> {{ 'Update Level' if level else 'Save Level' }}
+                </button>
+                <a href="{{ url_for('admin.service_levels') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.form-header h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--admin-secondary, #2d3436);
+    margin: 0;
+}
+
+.form-header .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-card {
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: var(--admin-text, #2d3436);
+}
+
+.form-group label .required {
+    color: #e74c3c;
+}
+
+.level-name-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.level-name-selector select {
+    cursor: pointer;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--admin-border, #dfe6e9);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    background: var(--admin-card-bg, #ffffff);
+    color: var(--admin-text, #2d3436);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 3px rgba(108,92,231,0.1);
+}
+
+.form-control.is-invalid {
+    border-color: #e74c3c;
+}
+
+.form-control.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(231,76,60,0.1);
+}
+
+.invalid-feedback {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 4px;
+    display: block;
+}
+
+.form-text {
+    display: block;
+    font-size: 13px;
+    color: var(--admin-text-light, #636e72);
+    margin-top: 4px;
+}
+
+.alert-info {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    font-size: 14px;
+}
+
+.alert-info i {
+    margin-right: 6px;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-check-label {
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.icon-preview {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.icon-preview i {
+    font-size: 20px;
+    margin-left: 8px;
+}
+
+.color-preview {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--admin-text-light, #636e72);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    display: inline-block;
+    border: 2px solid #ddd;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background: #6c5ce7;
+    color: #fff;
+    border-color: #6c5ce7;
+}
+
+.btn-primary:hover {
+    background: #5f3dc4;
+    border-color: #5f3dc4;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(108,92,231,0.3);
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    color: var(--admin-secondary, #2d3436);
+    border-color: var(--admin-border, #dfe6e9);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--admin-border, #dfe6e9);
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-card {
+        padding: 20px;
+    }
+
+    .form-header .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Level name selector
+    const levelNameSelect = document.getElementById('levelNameSelect');
+    const levelNameInput = document.getElementById('levelNameInput');
+    const slugInput = document.getElementById('slug');
+
+    if (levelNameSelect && levelNameInput) {
+        levelNameSelect.addEventListener('change', function() {
+            const selectedValue = this.value;
+            if (selectedValue === 'Custom') {
+                levelNameInput.value = '';
+                levelNameInput.placeholder = 'Enter custom level name...';
+                levelNameInput.focus();
+            } else if (selectedValue) {
+                levelNameInput.value = selectedValue;
+                // Auto-generate slug
+                if (slugInput && !slugInput.value.trim()) {
+                    const slug = selectedValue.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                    slugInput.value = slug;
+                }
+            }
+        });
+    }
+
+    // Auto-generate slug from name
+    if (levelNameInput && slugInput) {
+        levelNameInput.addEventListener('blur', function() {
+            if (!slugInput.value.trim()) {
+                const name = this.value.trim();
+                if (name) {
+                    slugInput.value = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                }
+            }
+        });
+
+        // Also generate on input if slug is empty
+        levelNameInput.addEventListener('input', function() {
+            if (!slugInput.value.trim()) {
+                const name = this.value.trim();
+                if (name) {
+                    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                    slugInput.value = slug;
+                }
+            }
+        });
+    }
+
+    // Icon preview
+    const iconInput = document.getElementById('icon');
+    const iconPreview = document.getElementById('iconPreview');
+
+    if (iconInput && iconPreview) {
+        iconInput.addEventListener('input', function() {
+            const iconClass = this.value.trim();
+            if (iconClass) {
+                iconPreview.className = 'fas ' + iconClass;
+            } else {
+                iconPreview.className = 'fas fa-crown';
+            }
+        });
+    }
+
+    // Color preview
+    const colorInput = document.getElementById('color');
+    const colorPreview = document.getElementById('colorPreview');
+
+    if (colorInput && colorPreview) {
+        colorInput.addEventListener('input', function() {
+            const color = this.value.trim();
+            if (color) {
+                colorPreview.style.backgroundColor = color;
+            } else {
+                colorPreview.style.backgroundColor = '#6c5ce7';
+            }
+        });
+    }
+
+    // Pre-populate predefined level name if editing
+    {% if level and level.name %}
+        const predefinedLevels = ['Platinum', 'Gold', 'Silver', 'Bronze', 'Diamond', 'Premium', 'Deluxe', 'Luxury', 'Basic', 'Standard', 'Executive', 'VIP', 'Elite', 'Signature', 'Royal'];
+        if (predefinedLevels.includes('{{ level.name }}')) {
+            document.getElementById('levelNameSelect').value = '{{ level.name }}';
+        }
+    {% endif %}
+});
+</script>
+{% endblock %}

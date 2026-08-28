@@ -1,0 +1,853 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- ============================================================ -->
+<!-- STATS CARDS -->
+<!-- ============================================================ -->
+<div class="stats-grid">
+    <div class="stat-card stat-primary">
+        <div class="stat-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Total Users</span>
+            <span class="stat-number">{{ total_users }}</span>
+        </div>
+        <div class="stat-trend">
+            <span class="text-muted">Active users</span>
+        </div>
+    </div>
+
+    <div class="stat-card stat-warning">
+        <div class="stat-icon">
+            <i class="fas fa-envelope"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">New Inquiries</span>
+            <span class="stat-number">{{ new_inquiries }}</span>
+        </div>
+        <div class="stat-trend">
+            <span class="text-muted">Total: {{ total_inquiries }}</span>
+        </div>
+    </div>
+
+    <div class="stat-card stat-success">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Booked</span>
+            <span class="stat-number">{{ booked_inquiries }}</span>
+        </div>
+        <div class="stat-trend">
+            <span class="text-muted">Confirmed bookings</span>
+        </div>
+    </div>
+
+    <div class="stat-card stat-info">
+        <div class="stat-icon">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Total Bookings</span>
+            <span class="stat-number">{{ total_bookings or 0 }}</span>
+        </div>
+        <div class="stat-trend">
+            {% if pending_bookings > 0 %}
+                <span class="text-warning">{{ pending_bookings }} pending</span>
+            {% else %}
+                <span class="text-muted">All confirmed</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="stat-card stat-purple">
+        <div class="stat-icon">
+            <i class="fas fa-newspaper"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Blog Posts</span>
+            <span class="stat-number">{{ total_blog_posts or 0 }}</span>
+        </div>
+        <div class="stat-trend">
+            <span class="text-muted">Published</span>
+        </div>
+    </div>
+
+    <div class="stat-card stat-success">
+        <div class="stat-icon">
+            <i class="fas fa-star"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Testimonials</span>
+            <span class="stat-number">{{ total_testimonials }}</span>
+        </div>
+        <div class="stat-trend">
+            {% if pending_testimonials > 0 %}
+                <span class="text-warning">{{ pending_testimonials }} pending</span>
+            {% else %}
+                <span class="text-muted">All approved</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="stat-card stat-danger">
+        <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Pending Testimonials</span>
+            <span class="stat-number">{{ pending_testimonials }}</span>
+        </div>
+        <div class="stat-trend">
+            <a href="{{ url_for('admin.testimonials') }}" class="text-danger">Review now</a>
+        </div>
+    </div>
+
+    <div class="stat-card stat-warning">
+        <div class="stat-icon">
+            <i class="fas fa-images"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Gallery Images</span>
+            <span class="stat-number">{{ total_gallery }}</span>
+        </div>
+        <div class="stat-trend">
+            <span class="text-muted">{{ total_albums or 0 }} albums</span>
+        </div>
+    </div>
+
+    <div class="stat-card stat-primary">
+        <div class="stat-icon">
+            <i class="fas fa-folder-open"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Albums</span>
+            <span class="stat-number">{{ total_albums or 0 }}</span>
+        </div>
+        <div class="stat-trend">
+            <a href="{{ url_for('admin.albums') }}" class="text-primary">Manage</a>
+        </div>
+    </div>
+
+    <div class="stat-card stat-info">
+        <div class="stat-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Team Members</span>
+            <span class="stat-number">{{ total_team_members }}</span>
+        </div>
+        <div class="stat-trend">
+            <span class="text-muted">{{ active_team_members }} active</span>
+        </div>
+    </div>
+
+    <div class="stat-card stat-success">
+        <div class="stat-icon">
+            <i class="fas fa-concierge-bell"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Services</span>
+            <span class="stat-number">{{ total_services }}</span>
+        </div>
+        <div class="stat-trend">
+            <span class="text-muted">{{ total_service_levels or 0 }} levels</span>
+        </div>
+    </div>
+
+    <div class="stat-card stat-purple">
+        <div class="stat-icon">
+            <i class="fas fa-envelope"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Subscribers</span>
+            <span class="stat-number">{{ total_subscribers or 0 }}</span>
+        </div>
+        <div class="stat-trend">
+            <a href="{{ url_for('admin.subscribers') }}" class="text-purple">View all</a>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHARTS AND QUICK STATS ROW -->
+<!-- ============================================================ -->
+<div class="dashboard-row">
+    <div class="dashboard-card chart-card">
+        <div class="card-header">
+            <h3><i class="fas fa-chart-line"></i> Inquiries (Last 14 Days)</h3>
+            <span class="text-muted">Total: {{ total_inquiries }}</span>
+        </div>
+        <div class="card-body">
+            <canvas id="inquiriesChart" height="250"></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard-card quick-stats-card">
+        <div class="card-header">
+            <h3><i class="fas fa-tachometer-alt"></i> Quick Stats</h3>
+        </div>
+        <div class="card-body">
+            <div class="quick-stat-item">
+                <span class="quick-stat-label">Contacted</span>
+                <span class="quick-stat-value">{{ contacted_inquiries }}</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (contacted_inquiries / total_inquiries * 100) if total_inquiries > 0 else 0 }}%; background: #6c5ce7;"></div>
+                </div>
+            </div>
+            <div class="quick-stat-item">
+                <span class="quick-stat-label">Booked Rate</span>
+                <span class="quick-stat-value">{{ (booked_inquiries / total_inquiries * 100)|round(1) if total_inquiries > 0 else 0 }}%</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (booked_inquiries / total_inquiries * 100) if total_inquiries > 0 else 0 }}%; background: #00b894;"></div>
+                </div>
+            </div>
+            <div class="quick-stat-item">
+                <span class="quick-stat-label">Pending Approval</span>
+                <span class="quick-stat-value">{{ pending_testimonials }}</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ (pending_testimonials / total_testimonials * 100) if total_testimonials > 0 else 0 }}%; background: #fdcb6e;"></div>
+                </div>
+            </div>
+            <div class="quick-stat-item">
+                <span class="quick-stat-label">Active Services</span>
+                <span class="quick-stat-value">{{ total_services }}</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%; background: #00b894;"></div>
+                </div>
+            </div>
+            <div class="quick-stat-divider"></div>
+            <div class="quick-stat-total">
+                <span>Total Inquiries</span>
+                <strong>{{ total_inquiries }}</strong>
+            </div>
+            <div class="quick-stat-total">
+                <span>Total Bookings</span>
+                <strong>{{ total_bookings or 0 }}</strong>
+            </div>
+            <div class="quick-stat-total">
+                <span>Total Users</span>
+                <strong>{{ total_users }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- RECENT ACTIVITY AND RECENT INQUIRIES -->
+<!-- ============================================================ -->
+<div class="dashboard-row two-col">
+    <div class="dashboard-card activity-card">
+        <div class="card-header">
+            <h3><i class="fas fa-bolt"></i> Recent Activity</h3>
+            <a href="{{ url_for('admin.activity_logs') }}" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="card-body">
+            <div class="activity-list">
+                {% for activity in recent_activity %}
+                <div class="activity-item">
+                    <div class="activity-icon {% if activity.type == 'inquiry' %}activity-inquiry{% elif activity.type == 'booking' %}activity-booking{% else %}activity-testimonial{% endif %}">
+                        <i class="fas {% if activity.type == 'inquiry' %}fa-envelope{% elif activity.type == 'booking' %}fa-calendar-check{% else %}fa-star{% endif %}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <a href="{{ activity.url }}">{{ activity.title }}</a>
+                        <span class="activity-subtitle">{{ activity.subtitle }}</span>
+                        <span class="activity-time">{{ activity.timestamp.strftime('%d %b %Y, %H:%M') }}</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="activity-empty">
+                    <i class="fas fa-inbox"></i>
+                    <p>No recent activity</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-card recent-inquiries-card">
+        <div class="card-header">
+            <h3><i class="fas fa-envelope"></i> Recent Inquiries</h3>
+            <a href="{{ url_for('admin.inquiries') }}" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="card-body">
+            <div class="recent-inquiries-list">
+                {% for inquiry in recent_inquiries %}
+                <div class="inquiry-item">
+                    <div class="inquiry-info">
+                        <span class="inquiry-name">{{ inquiry.name }}</span>
+                        <span class="inquiry-details">{{ inquiry.event_type if inquiry.event_type else 'General Inquiry' }}</span>
+                    </div>
+                    <div class="inquiry-meta">
+                        <span class="status-badge status-{{ inquiry.status }}">
+                            {{ inquiry.status|title }}
+                        </span>
+                        <span class="inquiry-time">{{ inquiry.created_at.strftime('%d %b') }}</span>
+                        <a href="{{ url_for('admin.inquiry_detail', id=inquiry.id) }}" class="btn-action btn-edit" title="View">
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="activity-empty">
+                    <i class="fas fa-inbox"></i>
+                    <p>No recent inquiries</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ============================================================
+   DASHBOARD STYLES
+   ============================================================ */
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+    position: relative;
+    border-left: 4px solid transparent;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.stat-primary .stat-icon { background: #6c5ce7; }
+.stat-warning .stat-icon { background: #fdcb6e; }
+.stat-success .stat-icon { background: #00b894; }
+.stat-info .stat-icon { background: #0984e3; }
+.stat-purple .stat-icon { background: #a29bfe; }
+.stat-danger .stat-icon { background: #ff6b6b; }
+
+.stat-primary { border-left-color: #6c5ce7; }
+.stat-warning { border-left-color: #fdcb6e; }
+.stat-success { border-left-color: #00b894; }
+.stat-info { border-left-color: #0984e3; }
+.stat-purple { border-left-color: #a29bfe; }
+.stat-danger { border-left-color: #ff6b6b; }
+
+.stat-info .stat-number { color: #0984e3; }
+.stat-success .stat-number { color: #00b894; }
+.stat-warning .stat-number { color: #fdcb6e; }
+.stat-danger .stat-number { color: #ff6b6b; }
+.stat-primary .stat-number { color: #6c5ce7; }
+.stat-purple .stat-number { color: #a29bfe; }
+
+.stat-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--admin-text-light, #636e72);
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    display: block;
+}
+
+.stat-trend {
+    position: absolute;
+    bottom: 12px;
+    right: 16px;
+    font-size: 12px;
+}
+
+.text-muted { color: var(--admin-text-light, #636e72); }
+.text-warning { color: #fdcb6e; }
+.text-danger { color: #ff6b6b; }
+.text-primary { color: #6c5ce7; }
+.text-purple { color: #a29bfe; }
+.text-success { color: #00b894; }
+
+/* Dashboard Row */
+.dashboard-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.dashboard-row.two-col {
+    grid-template-columns: 1fr 1fr;
+}
+
+.dashboard-card {
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--admin-border, #dfe6e9);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--admin-secondary, #2d3436);
+}
+
+.card-header h3 i {
+    color: #6c5ce7;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* Chart Card */
+.chart-card .card-body {
+    padding: 10px 20px 20px;
+    min-height: 280px;
+}
+
+/* Quick Stats Card */
+.quick-stat-item {
+    margin-bottom: 14px;
+}
+
+.quick-stat-label {
+    font-size: 13px;
+    color: var(--admin-text-light, #636e72);
+    display: inline-block;
+}
+
+.quick-stat-value {
+    float: right;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--admin-secondary, #2d3436);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--admin-bg, #f5f6fa);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s ease;
+}
+
+.quick-stat-divider {
+    height: 1px;
+    background: var(--admin-border, #dfe6e9);
+    margin: 16px 0;
+}
+
+.quick-stat-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--admin-secondary, #2d3436);
+    padding: 4px 0;
+}
+
+.quick-stat-total strong {
+    font-size: 18px;
+}
+
+/* Activity List */
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--admin-border-light, #f0f0f0);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.activity-inquiry { background: #6c5ce7; }
+.activity-booking { background: #00b894; }
+.activity-testimonial { background: #fdcb6e; }
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-content a {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--admin-secondary, #2d3436);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.activity-content a:hover {
+    color: #6c5ce7;
+}
+
+.activity-subtitle {
+    display: block;
+    font-size: 12px;
+    color: var(--admin-text-light, #636e72);
+    margin-top: 2px;
+}
+
+.activity-time {
+    display: block;
+    font-size: 11px;
+    color: var(--admin-text-lighter, #b2bec3);
+    margin-top: 4px;
+}
+
+.activity-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.activity-empty i {
+    font-size: 48px;
+    color: var(--admin-text-lighter, #b2bec3);
+    display: block;
+    margin-bottom: 12px;
+}
+
+/* Recent Inquiries */
+.recent-inquiries-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.inquiry-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--admin-border-light, #f0f0f0);
+}
+
+.inquiry-item:last-child {
+    border-bottom: none;
+}
+
+.inquiry-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.inquiry-name {
+    font-weight: 500;
+    color: var(--admin-secondary, #2d3436);
+    font-size: 14px;
+}
+
+.inquiry-details {
+    font-size: 12px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.inquiry-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.inquiry-time {
+    font-size: 12px;
+    color: var(--admin-text-lighter, #b2bec3);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-new { background: #dfe6e9; color: #2d3436; }
+.status-contacted { background: #fdcb6e; color: #2d3436; }
+.status-booked { background: #00b894; color: #fff; }
+.status-archived { background: #dfe6e9; color: #636e72; }
+.status-pending { background: #fdcb6e; color: #2d3436; }
+.status-confirmed { background: #00b894; color: #fff; }
+.status-completed { background: #0984e3; color: #fff; }
+.status-cancelled { background: #ff6b6b; color: #fff; }
+
+.btn-action {
+    background: none;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    color: #6c5ce7;
+    text-decoration: none;
+}
+
+.btn-action:hover {
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.btn-edit { color: #6c5ce7; }
+.btn-delete { color: #ff6b6b; }
+
+/* Quick Actions */
+.quick-actions {
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 20px;
+    margin-top: 8px;
+}
+
+.quick-actions-header {
+    margin-bottom: 16px;
+}
+
+.quick-actions-header h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--admin-secondary, #2d3436);
+}
+
+.quick-actions-header h4 i {
+    color: #6c5ce7;
+    margin-right: 8px;
+}
+
+.quick-actions-header .text-muted {
+    font-size: 13px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.quick-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--admin-bg, #f5f6fa);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--admin-secondary, #2d3436);
+    transition: all 0.2s ease;
+    position: relative;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.quick-action:hover {
+    background: #6c5ce7;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+
+.quick-action i {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+.quick-action .badge {
+    margin-left: auto;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 50px;
+}
+
+.badge-danger {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+.badge-warning {
+    background: #fdcb6e;
+    color: #2d3436;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .dashboard-row {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-row.two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .stat-card {
+        padding: 14px;
+    }
+    .stat-number {
+        font-size: 22px;
+    }
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // ============================================================
+    // INQUIRIES CHART
+    // ============================================================
+    var ctx = document.getElementById('inquiriesChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|tojson }},
+            datasets: [{
+                label: 'Inquiries',
+                data: {{ chart_data|tojson }},
+                backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                borderColor: '#6c5ce7',
+                borderWidth: 3,
+                pointBackgroundColor: '#6c5ce7',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#2d3436',
+                    bodyColor: '#2d3436',
+                    borderColor: '#dfe6e9',
+                    borderWidth: 1,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: { size: 12 }
+                    },
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 11 },
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

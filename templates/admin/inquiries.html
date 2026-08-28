@@ -1,0 +1,136 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Manage Inquiries{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <div class="toolbar-left">
+        <div class="filter-group">
+            <a href="{{ url_for('admin.inquiries') }}?status=all" class="filter-btn {% if current_status == 'all' %}active{% endif %}">
+                All ({{ counts.all }})
+            </a>
+            <a href="{{ url_for('admin.inquiries') }}?status=new" class="filter-btn {% if current_status == 'new' %}active{% endif %}">
+                New ({{ counts.new }})
+            </a>
+            <a href="{{ url_for('admin.inquiries') }}?status=contacted" class="filter-btn {% if current_status == 'contacted' %}active{% endif %}">
+                Contacted ({{ counts.contacted }})
+            </a>
+            <a href="{{ url_for('admin.inquiries') }}?status=booked" class="filter-btn {% if current_status == 'booked' %}active{% endif %}">
+                Booked ({{ counts.booked }})
+            </a>
+            <a href="{{ url_for('admin.inquiries') }}?status=archived" class="filter-btn {% if current_status == 'archived' %}active{% endif %}">
+                Archived ({{ counts.archived }})
+            </a>
+        </div>
+    </div>
+    <div class="toolbar-right">
+        <form method="GET" action="{{ url_for('admin.inquiries') }}" class="search-form">
+            <input type="hidden" name="status" value="{{ current_status }}">
+            <input type="text" name="search" placeholder="Search inquiries..." value="{{ search_query or '' }}">
+            <button type="submit"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('admin.bulk_inquiry_action') }}" id="bulkForm">
+
+    <div class="table-responsive">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th width="40">
+                        <input type="checkbox" id="selectAll">
+                    </th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Event Type</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Received</th>
+                    <th width="120">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inquiry in inquiries %}
+                <tr>
+                    <td>
+                        <input type="checkbox" class="inquiry-select" name="inquiry_ids" value="{{ inquiry.id }}">
+                    </td>
+                    <td><strong>{{ inquiry.name }}</strong></td>
+                    <td><a href="mailto:{{ inquiry.email }}">{{ inquiry.email }}</a></td>
+                    <td><a href="tel:{{ inquiry.phone }}">{{ inquiry.phone }}</a></td>
+                    <td><span class="badge-event">{{ inquiry.get_event_type_display() }}</span></td>
+                    <td>{% if inquiry.event_date %}{{ inquiry.event_date.strftime('%d %b %Y') }}{% else %}N/A{% endif %}</td>
+                    <td>
+                        <span class="status-badge status-{{ inquiry.status }}">
+                            {{ inquiry.get_status_display() }}
+                        </span>
+                    </td>
+                    <td>{{ inquiry.created_at.strftime('%d %b %Y') }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('admin.inquiry_detail', id=inquiry.id) }}" class="btn-action btn-view" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('admin.delete_inquiry', id=inquiry.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this inquiry?')">
+                                <button type="submit" class="btn-action btn-delete" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>No inquiries found</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bulk Actions -->
+    {% if inquiries %}
+    <div class="bulk-actions">
+        <div class="bulk-actions-content">
+            <span>Selected: <strong id="selectedCount">0</strong></span>
+            <select name="action" id="bulkAction">
+                <option value="">Bulk Action</option>
+                <option value="new">Mark as New</option>
+                <option value="contacted">Mark as Contacted</option>
+                <option value="booked">Mark as Booked</option>
+                <option value="archived">Mark as Archived</option>
+                <option value="delete">Delete Selected</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+        </div>
+    </div>
+    {% endif %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#selectAll').on('change', function() {
+        $('.inquiry-select').prop('checked', $(this).prop('checked'));
+        updateSelectedCount();
+    });
+
+    $('.inquiry-select').on('change', function() {
+        updateSelectedCount();
+        $('#selectAll').prop('checked', $('.inquiry-select:checked').length === $('.inquiry-select').length);
+    });
+
+    function updateSelectedCount() {
+        $('#selectedCount').text($('.inquiry-select:checked').length);
+    }
+});
+</script>
+{% endblock %}

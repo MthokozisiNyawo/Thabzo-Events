@@ -1,0 +1,93 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>{{ title }}</h2>
+        <a href="{{ url_for('admin.gallery') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data" action="">
+            {{ form.hidden_tag() }}
+
+            {% if image %}
+            <div class="current-image">
+                <label>Current Image</label>
+                <img src="{{ url_for('static', filename=image.filepath) }}" alt="{{ image.title }}" style="max-width: 300px; max-height: 200px; border-radius: 8px;">
+                <p class="text-muted"><small>Upload a new image to replace it.</small></p>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="image">Image {% if not image %}<span class="required">*</span>{% endif %}</label>
+                {{ form.image(class="form-control-file" + (" is-invalid" if form.image.errors else "")) }}
+                {% if form.image.errors %}
+                    <div class="invalid-feedback">{{ form.image.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">Allowed formats: JPG, PNG, GIF, WEBP. Max size: 16MB.</small>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    {{ form.title(class="form-control", placeholder="e.g., Beautiful Wedding Setup") }}
+                    {% if form.title.errors %}
+                        <div class="invalid-feedback">{{ form.title.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="category_id">Category <span class="required">*</span></label>
+                    {{ form.category_id(class="form-control" + (" is-invalid" if form.category_id.errors else "")) }}
+                    {% if form.category_id.errors %}
+                        <div class="invalid-feedback">{{ form.category_id.errors[0] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                {{ form.description(class="form-control", rows="2", placeholder="Brief description of the image...") }}
+                {% if form.description.errors %}
+                    <div class="invalid-feedback">{{ form.description.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="display_order">Display Order</label>
+                    {{ form.display_order(class="form-control", placeholder="0") }}
+                    {% if form.display_order.errors %}
+                        <div class="invalid-feedback">{{ form.display_order.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Lower numbers appear first.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="is_featured">Featured Image</label>
+                    <div class="form-check form-switch">
+                        {{ form.is_featured(class="form-check-input") }}
+                        <label class="form-check-label" for="is_featured">Featured</label>
+                    </div>
+                    {% if form.is_featured.errors %}
+                        <div class="invalid-feedback">{{ form.is_featured.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Featured images appear on the homepage.</small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> {{ 'Update' if image else 'Upload' }} Image
+                </button>
+                <a href="{{ url_for('admin.gallery') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

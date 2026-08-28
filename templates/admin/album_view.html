@@ -1,0 +1,418 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Album: {{ album.name }}{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <div class="toolbar-left">
+        <span class="toolbar-info">{{ images|length }} images in this album</span>
+    </div>
+    <div class="toolbar-right">
+        <a href="{{ url_for('admin.add_gallery_image') }}?album_id={{ album.id }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Image
+        </a>
+        <a href="{{ url_for('admin.add_multiple_gallery_images') }}?album_id={{ album.id }}" class="btn btn-outline-primary">
+            <i class="fas fa-images"></i> Upload Multiple
+        </a>
+        <a href="{{ url_for('admin.albums') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="album-info">
+    <div class="album-info-card">
+        <h3>{{ album.name }}</h3>
+        <p>{{ album.description or 'No description' }}</p>
+        <div class="album-meta">
+            <span><i class="fas fa-tag"></i> {{ album.get_category_display() }}</span>
+            {% if album.event_date %}
+                <span><i class="fas fa-calendar-alt"></i> {{ album.event_date.strftime('%d %B %Y') }}</span>
+            {% endif %}
+            <span><i class="fas fa-images"></i> {{ images|length }} images</span>
+            <span class="status-badge {% if album.is_active %}status-approved{% else %}status-inactive{% endif %}">
+                {{ 'Active' if album.is_active else 'Inactive' }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="gallery-grid-admin">
+    {% for image in images %}
+    <div class="gallery-item-admin">
+        <div class="gallery-item-image">
+            {% if image.filepath %}
+                {# Remove /static/ prefix if it exists to avoid duplication #}
+                {% set clean_path = image.filepath.replace('static/', '').replace('//', '/') %}
+                <img src="{{ url_for('static', filename=clean_path) }}" alt="{{ image.title or 'Gallery image' }}" loading="lazy"
+                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-image.png') }}';">
+            {% else %}
+                <div class="gallery-no-image">
+                    <i class="fas fa-image"></i>
+                    <span>No Image</span>
+                </div>
+            {% endif %}
+            {% if image.is_featured %}
+                <span class="gallery-badge featured">Featured</span>
+            {% endif %}
+            <span class="gallery-badge category">{{ image.get_category_display() }}</span>
+        </div>
+        <div class="gallery-item-info">
+            <h4>{{ image.title or 'Untitled' }}</h4>
+            <p class="text-muted">{{ image.description or 'No description' }}</p>
+            <div class="gallery-item-actions">
+                <a href="{{ url_for('admin.edit_gallery_image', id=image.id) }}" class="btn-action btn-edit" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <form method="POST" action="{{ url_for('admin.feature_gallery_image', id=image.id) }}" style="display:inline;">
+                    <button type="submit" class="btn-action {% if image.is_featured %}btn-warning{% else %}btn-success{% endif %}"
+                            title="{% if image.is_featured %}Remove Featured{% else %}Make Featured{% endif %}">
+                        <i class="fas {% if image.is_featured %}fa-star{% else %}fa-star-o{% endif %}"></i>
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('admin.delete_gallery_image', id=image.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this image?')">
+                    <button type="submit" class="btn-action btn-delete" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+        <i class="fas fa-images"></i>
+        <p>No images in this album</p>
+        <a href="{{ url_for('admin.add_multiple_gallery_images') }}?album_id={{ album.id }}" class="btn btn-primary btn-sm">Upload Images</a>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+.admin-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.toolbar-left .toolbar-info {
+    font-size: 14px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.toolbar-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background: #6c5ce7;
+    color: #fff;
+    border-color: #6c5ce7;
+}
+
+.btn-primary:hover {
+    background: #5f3dc4;
+    border-color: #5f3dc4;
+    color: #fff;
+}
+
+.btn-outline-primary {
+    background: transparent;
+    color: #6c5ce7;
+    border-color: #6c5ce7;
+}
+
+.btn-outline-primary:hover {
+    background: #6c5ce7;
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    color: var(--admin-secondary, #2d3436);
+    border-color: var(--admin-border, #dfe6e9);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+.album-info {
+    margin-bottom: 24px;
+}
+
+.album-info-card {
+    background: var(--admin-card-bg);
+    border-radius: var(--admin-border-radius);
+    padding: 24px;
+    box-shadow: var(--admin-card-shadow);
+}
+
+.album-info-card h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: var(--admin-secondary);
+}
+
+.album-info-card p {
+    color: var(--admin-text-light);
+    margin: 0 0 12px 0;
+}
+
+.album-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.album-meta span {
+    font-size: 14px;
+    color: var(--admin-text-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.album-meta i {
+    color: var(--admin-primary);
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.gallery-grid-admin {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.gallery-item-admin {
+    background: var(--admin-card-bg);
+    border-radius: var(--admin-border-radius);
+    overflow: hidden;
+    box-shadow: var(--admin-card-shadow);
+    transition: transform 0.2s ease;
+}
+
+.gallery-item-admin:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.gallery-item-image {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.gallery-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-item-admin:hover .gallery-item-image img {
+    transform: scale(1.05);
+}
+
+.gallery-no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--admin-text-lighter, #b2bec3);
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.gallery-no-image span {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.gallery-badge {
+    position: absolute;
+    padding: 3px 12px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.gallery-badge.featured {
+    top: 10px;
+    left: 10px;
+    background: #fdcb6e;
+    color: #2d3436;
+}
+
+.gallery-badge.category {
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+}
+
+.gallery-item-info {
+    padding: 12px 14px;
+}
+
+.gallery-item-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: var(--admin-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gallery-item-info p {
+    font-size: 12px;
+    color: var(--admin-text-light);
+    margin: 0 0 8px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.gallery-item-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-action {
+    background: none;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-action:hover {
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.btn-edit { color: #27ae60; }
+.btn-edit:hover { color: #1e8449; background: rgba(39,174,96,0.1); }
+.btn-delete { color: #e74c3c; }
+.btn-delete:hover { color: #c0392b; background: rgba(231,76,60,0.1); }
+.btn-success { color: #00b894; }
+.btn-success:hover { color: #00856a; background: rgba(0,184,148,0.1); }
+.btn-warning { color: #fdcb6e; }
+.btn-warning:hover { color: #d4a02e; background: rgba(253,203,110,0.1); }
+
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--admin-text-light, #636e72);
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: var(--admin-text-lighter, #b2bec3);
+    display: block;
+    margin-bottom: 16px;
+}
+
+.empty-state p {
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .gallery-grid-admin {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+
+    .album-meta {
+        gap: 12px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .gallery-grid-admin {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    .album-info-card {
+        padding: 16px;
+    }
+
+    .album-info-card h3 {
+        font-size: 18px;
+    }
+
+    .gallery-item-info h4 {
+        font-size: 13px;
+    }
+}
+</style>
+{% endblock %}

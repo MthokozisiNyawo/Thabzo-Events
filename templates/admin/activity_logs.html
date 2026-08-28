@@ -1,0 +1,61 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Activity Logs{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <div class="toolbar-left">
+        <span class="toolbar-info">Showing last 100 activities</span>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Action</th>
+                <th>Entity</th>
+                <th>Details</th>
+                <th>IP Address</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>
+                    {% if log.user %}
+                        <strong>{{ log.user.full_name }}</strong>
+                        <br><small style="color: var(--text-muted);">{{ log.user.email }}</small>
+                    {% else %}
+                        <span style="color: var(--text-muted);">System</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge-event">{{ log.action|title }}</span>
+                </td>
+                <td>
+                    <span class="badge-event">{{ log.entity_type|title }}</span>
+                    {% if log.entity_id %}
+                        <br><small style="color: var(--text-muted);">ID: {{ log.entity_id }}</small>
+                    {% endif %}
+                </td>
+                <td>{{ log.details or 'N/A' }}</td>
+                <td>{{ log.ip_address or 'N/A' }}</td>
+                <td>{{ log.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center">
+                    <div class="empty-state">
+                        <i class="fas fa-history"></i>
+                        <p>No activity logs found</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

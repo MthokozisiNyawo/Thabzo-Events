@@ -1,0 +1,130 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Site Settings{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Site Settings</h2>
+        <span class="text-muted">Configure your website settings</span>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <h3 class="form-section-title">Business Information</h3>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="business_name">Business Name</label>
+                    {{ form.business_name(class="form-control") }}
+                    {% if form.business_name.errors %}
+                        <div class="invalid-feedback">{{ form.business_name.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="business_tagline">Tagline</label>
+                    {{ form.business_tagline(class="form-control") }}
+                    {% if form.business_tagline.errors %}
+                        <div class="invalid-feedback">{{ form.business_tagline.errors[0] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="business_phone">Phone Number</label>
+                    {{ form.business_phone(class="form-control") }}
+                    {% if form.business_phone.errors %}
+                        <div class="invalid-feedback">{{ form.business_phone.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="business_phone_alt">Alternative Phone</label>
+                    {{ form.business_phone_alt(class="form-control") }}
+                    {% if form.business_phone_alt.errors %}
+                        <div class="invalid-feedback">{{ form.business_phone_alt.errors[0] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="business_location">Location</label>
+                    {{ form.business_location(class="form-control") }}
+                    {% if form.business_location.errors %}
+                        <div class="invalid-feedback">{{ form.business_location.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="whatsapp_number">WhatsApp Number</label>
+                    {{ form.whatsapp_number(class="form-control") }}
+                    {% if form.whatsapp_number.errors %}
+                        <div class="invalid-feedback">{{ form.whatsapp_number.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Include country code (e.g., 27605841224).</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="business_motto">Motto</label>
+                {{ form.business_motto(class="form-control", rows="2") }}
+                {% if form.business_motto.errors %}
+                    <div class="invalid-feedback">{{ form.business_motto.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            <h3 class="form-section-title">Hero Section</h3>
+
+            <div class="form-group">
+                <label for="hero_title">Hero Title</label>
+                {{ form.hero_title(class="form-control") }}
+                {% if form.hero_title.errors %}
+                    <div class="invalid-feedback">{{ form.hero_title.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="hero_subtitle">Hero Subtitle</label>
+                {{ form.hero_subtitle(class="form-control") }}
+                {% if form.hero_subtitle.errors %}
+                    <div class="invalid-feedback">{{ form.hero_subtitle.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            <h3 class="form-section-title">About & Footer</h3>
+
+            <div class="form-group">
+                <label for="about_content">About Us Content</label>
+                {{ form.about_content(class="form-control", rows="6") }}
+                {% if form.about_content.errors %}
+                    <div class="invalid-feedback">{{ form.about_content.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">HTML allowed. This content appears on the About page.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="footer_text">Footer Text</label>
+                {{ form.footer_text(class="form-control", rows="2") }}
+                {% if form.footer_text.errors %}
+                    <div class="invalid-feedback">{{ form.footer_text.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

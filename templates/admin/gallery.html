@@ -1,0 +1,776 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Manage Gallery{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <div class="toolbar-left">
+        <span class="toolbar-info">{{ images|length }} images</span>
+    </div>
+    <div class="toolbar-right">
+        <a href="{{ url_for('admin.add_multiple_gallery_images') }}" class="btn btn-primary">
+            <i class="fas fa-images"></i> Upload Multiple
+        </a>
+        <a href="{{ url_for('admin.add_gallery_image') }}" class="btn btn-outline-primary">
+            <i class="fas fa-plus"></i> Add Single
+        </a>
+    </div>
+</div>
+
+<!-- Bulk Delete Form -->
+<form method="POST" action="{{ url_for('admin.bulk_delete_gallery_images') }}" id="bulkDeleteForm">
+    <div class="gallery-grid">
+        {% for image in images %}
+        <div class="gallery-card" data-id="{{ image.id }}">
+            <div class="gallery-card-image">
+                {% if image.filepath %}
+                    {% set img_path = image.filepath|replace('//', '/')|replace('/static/', '') %}
+                    <img src="{{ url_for('static', filename=img_path) }}"
+                         alt="{{ image.title }}"
+                         loading="lazy"
+                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-image.png') }}';">
+                {% elif image.filename %}
+                    <img src="{{ url_for('static', filename='uploads/gallery/' ~ image.filename) }}"
+                         alt="{{ image.title }}"
+                         loading="lazy"
+                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-image.png') }}';">
+                {% else %}
+                    <div class="gallery-no-image">
+                        <i class="fas fa-image"></i>
+                        <span>No Image</span>
+                    </div>
+                {% endif %}
+
+                <!-- Selection Checkbox -->
+                <div class="gallery-select-wrapper">
+                    <input type="checkbox" class="image-select" name="image_ids" value="{{ image.id }}" id="select_{{ image.id }}">
+                    <label for="select_{{ image.id }}" class="select-label">
+                        <i class="fas fa-check"></i>
+                    </label>
+                </div>
+
+                <div class="gallery-card-overlay">
+                    <div class="gallery-card-actions">
+                        <a href="{{ url_for('admin.edit_gallery_image', id=image.id) }}" class="btn-action btn-edit" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        {% if image.filepath or image.filename %}
+                            {% if image.filepath %}
+                                {% set img_path = image.filepath|replace('//', '/')|replace('/static/', '') %}
+                            {% else %}
+                                {% set img_path = 'uploads/gallery/' ~ image.filename %}
+                            {% endif %}
+                            <a href="#" class="btn-action btn-view" title="View Full Size" onclick="openImageViewer('{{ url_for('static', filename=img_path) }}', '{{ image.title }}')">
+                                <i class="fas fa-expand"></i>
+                            </a>
+                        {% endif %}
+                        <form method="POST" action="{{ url_for('admin.feature_gallery_image', id=image.id) }}" style="display:inline;" class="inline-form">
+                            <button type="submit" class="btn-action {% if image.is_featured %}btn-warning{% else %}btn-success{% endif %}"
+                                    title="{% if image.is_featured %}Remove Featured{% else %}Make Featured{% endif %}">
+                                <i class="fas {% if image.is_featured %}fa-star{% else %}fa-star-o{% endif %}"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.delete_gallery_image', id=image.id) }}" style="display:inline;" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this image?')">
+                            <button type="submit" class="btn-action btn-delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="gallery-badges">
+                    {% if image.is_featured %}
+                        <span class="gallery-badge featured"><i class="fas fa-star"></i> Featured</span>
+                    {% endif %}
+                    {% if image.category %}
+                        <span class="gallery-badge category">{{ image.category.name }}</span>
+                    {% endif %}
+                    {% if image.album %}
+                        <span class="gallery-badge album"><i class="fas fa-folder"></i> {{ image.album.name }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="gallery-select-overlay">
+                    <div class="select-indicator">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-card-info">
+                <h4>{{ image.title or 'Untitled' }}</h4>
+                <p class="image-order">Order: {{ image.display_order }}</p>
+                {% if image.filename %}
+                    <p class="image-filename"><small>{{ image.filename[:30] }}{% if image.filename|length > 30 %}...{% endif %}</small></p>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state" style="grid-column: 1 / -1;">
+            <i class="fas fa-images"></i>
+            <p>No images in the gallery</p>
+            <a href="{{ url_for('admin.add_multiple_gallery_images') }}" class="btn btn-primary btn-sm">Upload Images</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Bulk Actions -->
+    {% if images %}
+    <div class="bulk-actions">
+        <div class="bulk-actions-content">
+            <label class="select-all">
+                <input type="checkbox" id="selectAll">
+                <span>Select All</span>
+            </label>
+            <span class="selected-count">Selected: <strong id="selectedCount">0</strong></span>
+            <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn">
+                <i class="fas fa-trash"></i> Delete Selected
+            </button>
+            <span id="bulkError" class="text-danger" style="display:none;">Please select at least one image.</span>
+        </div>
+    </div>
+    {% endif %}
+</form>
+
+<!-- Image Viewer Modal -->
+<div class="image-viewer-modal" id="imageViewerModal" onclick="closeImageViewer()">
+    <span class="image-viewer-close">&times;</span>
+    <div class="image-viewer-content">
+        <img id="imageViewerImg" src="" alt="">
+        <p id="imageViewerTitle"></p>
+    </div>
+</div>
+
+<style>
+/* Gallery Grid */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.gallery-card {
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.gallery-card.selected {
+    box-shadow: 0 0 0 3px #6c5ce7, 0 8px 30px rgba(108, 92, 231, 0.2);
+}
+
+.gallery-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.gallery-card-image {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.gallery-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-card:hover .gallery-card-image img {
+    transform: scale(1.05);
+}
+
+.gallery-no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--admin-text-lighter, #b2bec3);
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.gallery-no-image i {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.gallery-no-image span {
+    font-size: 14px;
+}
+
+/* Selection Checkbox */
+.gallery-select-wrapper {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.gallery-select-wrapper input[type="checkbox"] {
+    display: none;
+}
+
+.gallery-select-wrapper .select-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: 2px solid rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: transparent;
+}
+
+.gallery-select-wrapper .select-label:hover {
+    background: rgba(255,255,255,1);
+    border-color: #6c5ce7;
+}
+
+.gallery-select-wrapper input[type="checkbox"]:checked + .select-label {
+    background: #6c5ce7;
+    border-color: #6c5ce7;
+    color: #fff;
+}
+
+.gallery-select-wrapper input[type="checkbox"]:checked + .select-label i {
+    color: #fff;
+}
+
+.gallery-select-wrapper .select-label i {
+    font-size: 14px;
+}
+
+.gallery-card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gallery-card:hover .gallery-card-overlay {
+    opacity: 1;
+}
+
+.gallery-card-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.gallery-card-actions .btn-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.gallery-card-actions .btn-action:hover {
+    background: rgba(255,255,255,0.4);
+}
+
+.gallery-card-actions .btn-edit:hover { background: #27ae60; }
+.gallery-card-actions .btn-delete:hover { background: #e74c3c; }
+.gallery-card-actions .btn-success:hover { background: #00b894; }
+.gallery-card-actions .btn-warning:hover { background: #fdcb6e; color: #2d3436; }
+.gallery-card-actions .btn-view:hover { background: #3498db; }
+
+/* Gallery badges */
+.gallery-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 5;
+}
+
+.gallery-badge {
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #fff;
+}
+
+.gallery-badge.featured {
+    background: #fdcb6e;
+    color: #2d3436;
+}
+
+.gallery-badge.featured i {
+    margin-right: 4px;
+}
+
+.gallery-badge.category {
+    background: #6c5ce7;
+}
+
+.gallery-badge.album {
+    background: #0984e3;
+}
+
+.gallery-badge.album i {
+    margin-right: 4px;
+}
+
+.gallery-select-overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(108, 92, 231, 0.1);
+    pointer-events: none;
+}
+
+.gallery-card.selected .gallery-select-overlay {
+    display: block;
+}
+
+.select-indicator {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(108, 92, 231, 0.8);
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+}
+
+.gallery-card.selected .select-indicator {
+    display: flex;
+}
+
+/* Gallery card info */
+.gallery-card-info {
+    padding: 12px 16px;
+}
+
+.gallery-card-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 2px 0;
+    color: var(--admin-secondary, #2d3436);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gallery-card-info .image-order {
+    font-size: 12px;
+    color: var(--admin-text-light, #636e72);
+    margin: 0;
+}
+
+.gallery-card-info .image-filename {
+    font-size: 11px;
+    color: var(--admin-text-lighter, #b2bec3);
+    margin: 2px 0 0 0;
+}
+
+/* Bulk Actions */
+.bulk-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--admin-card-bg, #ffffff);
+    padding: 14px 20px;
+    border-top: 1px solid var(--admin-border, #dfe6e9);
+    margin-top: 20px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+
+.bulk-actions-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.select-all {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--admin-secondary, #2d3436);
+}
+
+.select-all input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.selected-count {
+    font-size: 14px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.selected-count strong {
+    color: var(--admin-secondary, #2d3436);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background: #6c5ce7;
+    color: #fff;
+    border-color: #6c5ce7;
+}
+
+.btn-primary:hover {
+    background: #5f3dc4;
+    border-color: #5f3dc4;
+    color: #fff;
+}
+
+.btn-outline-primary {
+    background: transparent;
+    color: #6c5ce7;
+    border-color: #6c5ce7;
+}
+
+.btn-outline-primary:hover {
+    background: #6c5ce7;
+    color: #fff;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: #fff;
+    border-color: #e74c3c;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+    border-color: #c0392b;
+    color: #fff;
+}
+
+.btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+.text-danger {
+    color: #e74c3c;
+}
+
+/* Image Viewer Modal */
+.image-viewer-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    cursor: pointer;
+}
+
+.image-viewer-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-viewer-close {
+    position: absolute;
+    top: 20px;
+    right: 40px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 10000;
+}
+
+.image-viewer-content {
+    max-width: 90%;
+    max-height: 90%;
+    text-align: center;
+}
+
+.image-viewer-content img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.image-viewer-content p {
+    color: #fff;
+    margin-top: 16px;
+    font-size: 18px;
+}
+
+/* Admin Toolbar */
+.admin-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.toolbar-left .toolbar-info {
+    font-size: 14px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.toolbar-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--admin-text-light, #636e72);
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: var(--admin-text-lighter, #b2bec3);
+    display: block;
+    margin-bottom: 12px;
+}
+
+.empty-state p {
+    margin-bottom: 16px;
+    font-size: 16px;
+}
+
+.inline-form {
+    display: inline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+
+    .bulk-actions-content {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.image-select');
+    const selectedCount = document.getElementById('selectedCount');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const bulkError = document.getElementById('bulkError');
+    const bulkForm = document.getElementById('bulkDeleteForm');
+
+    // Handle image loading errors
+    const images = document.querySelectorAll('.gallery-card-image img');
+    images.forEach(function(img) {
+        img.addEventListener('error', function() {
+            this.onerror = null;
+            this.src = '{{ url_for('static', filename='images/default-image.png') }}';
+        });
+    });
+
+    // Select All functionality
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+                updateCardSelection(cb);
+            });
+            updateCount();
+            updateBulkButton();
+        });
+    }
+
+    // Individual checkbox changes
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            updateCardSelection(this);
+            updateCount();
+            updateBulkButton();
+
+            if (selectAll) {
+                const checked = document.querySelectorAll('.image-select:checked').length;
+                selectAll.checked = checked === checkboxes.length;
+            }
+        });
+    });
+
+    function updateCardSelection(checkbox) {
+        const card = checkbox.closest('.gallery-card');
+        if (card) {
+            if (checkbox.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        }
+    }
+
+    function updateCount() {
+        const checked = document.querySelectorAll('.image-select:checked').length;
+        if (selectedCount) selectedCount.textContent = checked;
+    }
+
+    function updateBulkButton() {
+        const checked = document.querySelectorAll('.image-select:checked').length;
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.disabled = checked === 0;
+        }
+        if (bulkError) {
+            bulkError.style.display = 'none';
+        }
+    }
+
+    // Initialize
+    checkboxes.forEach(cb => updateCardSelection(cb));
+    updateCount();
+    updateBulkButton();
+
+    // Fix for checkbox label click to prevent double toggling
+    document.querySelectorAll('.select-label').forEach(label => {
+        label.addEventListener('click', function(e) {
+            e.preventDefault();
+            const checkbox = document.getElementById(this.getAttribute('for'));
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    // Bulk delete with JavaScript
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const checked = document.querySelectorAll('.image-select:checked');
+
+            if (checked.length === 0) {
+                if (bulkError) bulkError.style.display = 'block';
+                return;
+            }
+
+            if (confirm('Are you sure you want to delete ' + checked.length + ' selected image(s)? This cannot be undone.')) {
+                // Submit the form
+                if (bulkForm) {
+                    bulkForm.submit();
+                }
+            }
+        });
+    }
+});
+
+// Image Viewer functions
+function openImageViewer(src, title) {
+    const modal = document.getElementById('imageViewerModal');
+    const img = document.getElementById('imageViewerImg');
+    const titleEl = document.getElementById('imageViewerTitle');
+
+    img.src = src;
+    titleEl.textContent = title || 'Image';
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageViewer() {
+    const modal = document.getElementById('imageViewerModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Close with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageViewer();
+    }
+});
+
+// Close modal on click outside image
+document.getElementById('imageViewerModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageViewer();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+# THABZO EVENTS - Robots.txt
+# Allow all crawlers access to the main site
+
+User-agent: *
+Allow: /
+
+# Disallow admin and sensitive areas
+Disallow: /admin/
+Disallow: /login/
+Disallow: /logout/
+Disallow: /static/uploads/
+
+# Sitemap location
+Sitemap: {{ BASE_URL }}/sitemap.xml

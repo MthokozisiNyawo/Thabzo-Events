@@ -1,0 +1,528 @@
+/*
+THABZO EVENTS - Responsive Stylesheet
+Version: 4.0
+*/
+
+/* ========================================
+   TABLE OF CONTENTS
+   ========================================
+   1. Large Screens (1200px+)
+   2. Medium Screens (992px - 1199px)
+   3. Tablets (768px - 991px)
+   4. Small Tablets (576px - 767px)
+   5. Mobile Phones (480px - 575px)
+   6. Small Phones (below 480px)
+   ======================================== */
+
+/* ========================================
+   1. LARGE SCREENS (1200px+)
+   ======================================== */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+
+    .hero-title {
+        font-size: 72px;
+    }
+}
+
+/* ========================================
+   2. MEDIUM SCREENS (992px - 1199px)
+   ======================================== */
+@media (max-width: 1199px) {
+    .container {
+        max-width: 960px;
+    }
+
+    .hero-title {
+        font-size: 56px;
+    }
+
+    .section-title {
+        font-size: 38px;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ========================================
+   3. TABLETS (768px - 991px)
+   ======================================== */
+@media (max-width: 991px) {
+    .container {
+        max-width: 720px;
+        padding: 0 20px;
+    }
+
+    .hero-title {
+        font-size: 44px;
+    }
+
+    .hero-subtitle {
+        font-size: 18px;
+    }
+
+    .section-title {
+        font-size: 34px;
+    }
+
+    .section-subtitle {
+        font-size: 16px;
+    }
+
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .testimonials-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+    }
+
+    .page-hero h1 {
+        font-size: 38px;
+    }
+}
+
+/* ========================================
+   4. SMALL TABLETS (576px - 767px)
+   ======================================== */
+@media (max-width: 767px) {
+    .container {
+        max-width: 540px;
+        padding: 0 16px;
+    }
+
+    .section-padding {
+        padding: 50px 0;
+    }
+
+    .hero {
+        min-height: 90vh;
+        padding: 80px 0 40px;
+    }
+
+    .hero-title {
+        font-size: 36px;
+    }
+
+    .hero-subtitle {
+        font-size: 16px;
+    }
+
+    .hero-motto {
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+
+    .hero-stats {
+        gap: 25px;
+    }
+
+    .stat-number {
+        font-size: 28px;
+    }
+
+    .section-title {
+        font-size: 28px;
+    }
+
+    .section-tag {
+        font-size: 11px;
+        padding: 6px 18px;
+        letter-spacing: 3px;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .gallery-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .testimonials-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .team-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .contact-form-wrapper {
+        padding: 24px;
+    }
+
+    .contact-form .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .page-hero {
+        padding: calc(var(--navbar-height-mobile) + 60px) 0 40px;
+    }
+
+    .page-hero h1 {
+        font-size: 32px;
+    }
+
+    .page-hero p {
+        font-size: 16px;
+    }
+
+    .about-stats {
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .about-image-wrapper img {
+        height: 300px;
+    }
+}
+
+/* ========================================
+   5. MOBILE PHONES (480px - 575px)
+   ======================================== */
+@media (max-width: 575px) {
+    .container {
+        padding: 0 12px;
+    }
+
+    .section-padding {
+        padding: 40px 0;
+    }
+
+    .hero {
+        min-height: 85vh;
+        padding: 60px 0 30px;
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .hero-subtitle {
+        font-size: 14px;
+    }
+
+    .hero-badge {
+        font-size: 10px;
+        padding: 6px 16px;
+        letter-spacing: 3px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .hero-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hero-stats {
+        gap: 15px;
+    }
+
+    .stat-number {
+        font-size: 22px;
+    }
+
+    .stat-label {
+        font-size: 11px;
+    }
+
+    .section-title {
+        font-size: 24px;
+    }
+
+    .section-subtitle {
+        font-size: 15px;
+    }
+
+    .section-tag {
+        font-size: 10px;
+        padding: 4px 14px;
+        letter-spacing: 2px;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .service-card {
+        padding: 25px 20px;
+    }
+
+    .gallery-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .gallery-item {
+        aspect-ratio: 4/3;
+    }
+
+    .gallery-overlay {
+        padding: 15px;
+    }
+
+    .gallery-info h4 {
+        font-size: 14px;
+    }
+
+    .gallery-info p {
+        font-size: 11px;
+    }
+
+    .team-grid {
+        grid-template-columns: 1fr;
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    .testimonials-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .testimonial-card {
+        padding: 24px;
+    }
+
+    .cta-section {
+        padding: 60px 0;
+    }
+
+    .cta-content h2 {
+        font-size: 26px;
+    }
+
+    .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .cta-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .page-hero h1 {
+        font-size: 28px;
+    }
+
+    .page-hero p {
+        font-size: 14px;
+    }
+
+    .contact-form-wrapper {
+        padding: 16px;
+    }
+
+    .contact-info-card {
+        padding: 20px;
+    }
+
+    .contact-info-item {
+        flex-wrap: wrap;
+    }
+
+    .working-hours {
+        padding: 20px;
+    }
+
+    .footer {
+        padding: 40px 0 0;
+    }
+
+    .footer-grid {
+        gap: 25px;
+    }
+
+    .footer-bottom-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    .error-code {
+        font-size: 48px;
+    }
+
+    .error-title {
+        font-size: 22px;
+    }
+}
+
+/* ========================================
+   6. SMALL PHONES (below 480px)
+   ======================================== */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 10px;
+    }
+
+    .hero-title {
+        font-size: 24px;
+    }
+
+    .hero-motto {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+
+    .section-title {
+        font-size: 20px;
+    }
+
+    .gallery-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .gallery-item {
+        aspect-ratio: 4/3;
+    }
+
+    .gallery-overlay {
+        padding: 10px;
+    }
+
+    .gallery-info h4 {
+        font-size: 12px;
+    }
+
+    .gallery-zoom {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+        top: 10px;
+        right: 10px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        font-size: 13px;
+    }
+
+    .btn-lg {
+        padding: 14px 28px;
+        font-size: 14px;
+    }
+
+    .whatsapp-float {
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+        bottom: 16px;
+        right: 16px;
+    }
+
+    .scroll-top {
+        width: 38px;
+        height: 38px;
+        font-size: 14px;
+        bottom: 70px;
+        right: 16px;
+    }
+}
+
+/* ========================================
+   LANDSCAPE PHONES
+   ======================================== */
+@media (max-height: 600px) and (orientation: landscape) {
+    .hero {
+        min-height: 120vh;
+        padding: 60px 0 30px;
+    }
+
+    .hero-title {
+        font-size: 32px;
+    }
+
+    .hero-stats {
+        gap: 20px;
+    }
+
+    .stat-number {
+        font-size: 24px;
+    }
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+@media print {
+    .navbar,
+    .footer,
+    .whatsapp-float,
+    .scroll-top,
+    .hero-wave,
+    .hero-bg-elements {
+        display: none !important;
+    }
+
+    .hero {
+        min-height: auto;
+        padding: 30px 0;
+    }
+
+    .hero-overlay {
+        background: var(--dark) !important;
+    }
+
+    .section-padding {
+        padding: 30px 0 !important;
+    }
+
+    body {
+        padding-top: 0 !important;
+    }
+
+    .container {
+        max-width: 100% !important;
+    }
+
+    .btn {
+        border: 1px solid #ccc !important;
+        background: transparent !important;
+        color: #333 !important;
+    }
+}

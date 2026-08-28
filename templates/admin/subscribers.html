@@ -1,0 +1,67 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Newsletter Subscribers{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <div class="toolbar-left">
+        <span class="toolbar-info">
+            <strong>{{ active_count }}</strong> active subscribers out of <strong>{{ total_count }}</strong> total
+        </span>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Subscribed</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subscriber in subscribers %}
+            <tr>
+                <td><strong>{{ subscriber.email }}</strong></td>
+                <td>{{ subscriber.name or 'N/A' }}</td>
+                <td>
+                    {% if subscriber.is_active %}
+                        <span class="status-badge status-approved">Active</span>
+                    {% else %}
+                        <span class="status-badge status-inactive">Unsubscribed</span>
+                    {% endif %}
+                </td>
+                <td>{{ subscriber.subscribed_at.strftime('%d %b %Y') }}</td>
+                <td>
+                    <div class="action-buttons">
+                        <form method="POST" action="{{ url_for('admin.toggle_subscriber', id=subscriber.id) }}" style="display:inline;">
+                            <button type="submit" class="btn-action {% if subscriber.is_active %}btn-warning{% else %}btn-success{% endif %}"
+                                    title="{% if subscriber.is_active %}Unsubscribe{% else %}Resubscribe{% endif %}">
+                                <i class="fas {% if subscriber.is_active %}fa-times{% else %}fa-check{% endif %}"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.delete_subscriber', id=subscriber.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this subscriber?')">
+                            <button type="submit" class="btn-action btn-delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center">
+                    <div class="empty-state">
+                        <i class="fas fa-envelope"></i>
+                        <p>No subscribers yet</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

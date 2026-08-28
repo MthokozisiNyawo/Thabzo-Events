@@ -1,0 +1,127 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Booking Details{% endblock %}
+
+{% block content %}
+<div class="booking-detail">
+    <div class="detail-header">
+        <div class="detail-header-left">
+            <a href="{{ url_for('admin.bookings') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Back to Bookings
+            </a>
+            <h2>Booking from {{ booking.client_name }}</h2>
+        </div>
+        <div class="detail-header-right">
+            <span class="status-badge status-{{ booking.status }}">
+                {{ booking.status|title }}
+            </span>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <!-- Left Column - Booking Info -->
+        <div class="detail-main">
+            <div class="detail-card">
+                <h3><i class="fas fa-user"></i> Client Information</h3>
+                <div class="detail-info-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value">{{ booking.client_name }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value"><a href="mailto:{{ booking.client_email }}">{{ booking.client_email }}</a></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value"><a href="tel:{{ booking.client_phone }}">{{ booking.client_phone }}</a></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Event Type</span>
+                        <span class="detail-value">{{ booking.event_type|title }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Event Date</span>
+                        <span class="detail-value">{{ booking.event_date.strftime('%d %B %Y') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Event Time</span>
+                        <span class="detail-value">{{ booking.event_time or 'Not specified' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Guest Count</span>
+                        <span class="detail-value">{{ booking.guest_count or 'Not specified' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Venue</span>
+                        <span class="detail-value">{{ booking.venue or 'Not specified' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Booked On</span>
+                        <span class="detail-value">{{ booking.created_at.strftime('%d %B %Y at %H:%M') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Last Updated</span>
+                        <span class="detail-value">{{ booking.updated_at.strftime('%d %B %Y at %H:%M') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-card">
+                <h3><i class="fas fa-comment"></i> Additional Details</h3>
+                <div class="detail-message">
+                    {{ booking.message or 'No additional details provided.' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Actions -->
+        <div class="detail-sidebar">
+            <!-- Status Update -->
+            <div class="detail-card">
+                <h3><i class="fas fa-tasks"></i> Update Status</h3>
+                <form method="POST" action="{{ url_for('admin.update_booking', id=booking.id) }}">
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select name="status" class="form-control" id="status">
+                            <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            <option value="completed" {% if booking.status == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Internal Notes</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Add notes about this booking...">{{ booking.notes or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-save"></i> Update Booking
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="detail-card">
+                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                <div class="quick-actions-stack">
+                    <a href="mailto:{{ booking.client_email }}" class="btn btn-info btn-block">
+                        <i class="fas fa-envelope"></i> Send Email
+                    </a>
+                    <a href="tel:{{ booking.client_phone }}" class="btn btn-success btn-block">
+                        <i class="fas fa-phone"></i> Call Client
+                    </a>
+                    <a href="https://wa.me/27{{ booking.client_phone[1:] if booking.client_phone.startswith('0') else booking.client_phone }}" target="_blank" class="btn btn-success btn-block whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <form method="POST" action="{{ url_for('admin.delete_booking', id=booking.id) }}" onsubmit="return confirm('Are you sure you want to delete this booking?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-block">
+                            <i class="fas fa-trash"></i> Delete Booking
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

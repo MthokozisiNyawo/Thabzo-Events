@@ -1,0 +1,263 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Manage Categories{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <div class="toolbar-left">
+        <span class="toolbar-info">{{ categories|length }} categories</span>
+    </div>
+    <div class="toolbar-right">
+        <a href="{{ url_for('admin.add_category') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Category
+        </a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Icon</th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Type</th>
+                <th>Order</th>
+                <th>Status</th>
+                <th width="180">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>
+                    {% if category.icon %}
+                        <i class="fas {{ category.icon }}" style="font-size: 20px; color: #6c5ce7;"></i>
+                    {% else %}
+                        <i class="fas fa-tag" style="font-size: 20px; color: #b2bec3;"></i>
+                    {% endif %}
+                </td>
+                <td><strong>{{ category.name }}</strong></td>
+                <td><code>{{ category.slug }}</code></td>
+                <td>
+                    <span class="badge badge-{{ category.type }}">
+                        {{ category.type|title }}
+                    </span>
+                </td>
+                <td>{{ category.display_order }}</td>
+                <td>
+                    {% if category.is_active %}
+                        <span class="status-badge status-approved">Active</span>
+                    {% else %}
+                        <span class="status-badge status-inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('admin.edit_category', id=category.id) }}" class="btn-action btn-edit" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('admin.toggle_category', id=category.id) }}" style="display:inline;">
+                            <button type="submit" class="btn-action {% if category.is_active %}btn-warning{% else %}btn-success{% endif %}"
+                                    title="{% if category.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                <i class="fas {% if category.is_active %}fa-pause{% else %}fa-play{% endif %}"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.delete_category', id=category.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this category?')">
+                            <button type="submit" class="btn-action btn-delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center">
+                    <div class="empty-state">
+                        <i class="fas fa-tags"></i>
+                        <p>No categories created yet</p>
+                        <a href="{{ url_for('admin.add_category') }}" class="btn btn-primary btn-sm">Add Your First Category</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+.badge-service { background: #6c5ce7; color: #fff; }
+.badge-gallery { background: #00b894; color: #fff; }
+.badge-video { background: #0984e3; color: #fff; }
+.badge-event { background: #fdcb6e; color: #2d3436; }
+.badge-blog { background: #ff6b6b; color: #fff; }
+
+.badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.admin-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.toolbar-left .toolbar-info {
+    font-size: 14px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.toolbar-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background: #6c5ce7;
+    color: #fff;
+    border-color: #6c5ce7;
+}
+
+.btn-primary:hover {
+    background: #5f3dc4;
+    border-color: #5f3dc4;
+    color: #fff;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 0 20px;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 14px 8px;
+    font-weight: 600;
+    color: var(--admin-text-light, #636e72);
+    border-bottom: 2px solid var(--admin-border, #dfe6e9);
+}
+
+.admin-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--admin-border-light, #f0f0f0);
+    vertical-align: middle;
+}
+
+.admin-table tr:hover {
+    background: var(--admin-bg, #f8f9fa);
+}
+
+.text-center {
+    text-align: center;
+}
+
+code {
+    background: var(--admin-bg, #f5f6fa);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #6c5ce7;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-action {
+    background: none;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.btn-action:hover {
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.btn-edit { color: #6c5ce7; }
+.btn-delete { color: #ff6b6b; }
+.btn-success { color: #00b894; }
+.btn-warning { color: #fdcb6e; }
+
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--admin-text-light, #636e72);
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: var(--admin-text-lighter, #b2bec3);
+    display: block;
+    margin-bottom: 12px;
+}
+
+.empty-state p {
+    margin-bottom: 16px;
+    font-size: 16px;
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+</style>
+{% endblock %}

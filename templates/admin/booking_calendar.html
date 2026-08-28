@@ -1,0 +1,697 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Booking Calendar{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css" rel="stylesheet" />
+<style>
+    #calendar {
+        background: var(--admin-card-bg);
+        padding: 20px;
+        border-radius: var(--admin-border-radius);
+        box-shadow: var(--admin-card-shadow);
+    }
+
+    .fc-event-title {
+        font-weight: 500;
+        font-size: 12px;
+    }
+
+    .fc-event-pending {
+        background: #f39c12 !important;
+        border-color: #f39c12 !important;
+    }
+
+    .fc-event-confirmed {
+        background: #2ecc71 !important;
+        border-color: #2ecc71 !important;
+    }
+
+    .fc-event-cancelled {
+        background: #e74c3c !important;
+        border-color: #e74c3c !important;
+    }
+
+    .fc-event-completed {
+        background: #3498db !important;
+        border-color: #3498db !important;
+    }
+
+    .fc-daygrid-event {
+        cursor: pointer;
+        padding: 2px 6px !important;
+        font-size: 11px !important;
+        border-radius: 4px !important;
+        margin: 1px 2px !important;
+    }
+
+    .fc-timegrid-event {
+        cursor: pointer;
+        padding: 4px 8px !important;
+        font-size: 12px !important;
+        border-radius: 4px !important;
+    }
+
+    .fc-timegrid-event .fc-event-main {
+        padding: 2px 4px !important;
+    }
+
+    .fc-timegrid-event .fc-event-title {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+    }
+
+    .fc-timegrid-event .fc-event-time {
+        font-size: 11px !important;
+        font-weight: 500 !important;
+        color: rgba(255,255,255,0.9) !important;
+    }
+
+    .fc-toolbar-title {
+        font-size: 20px !important;
+        font-weight: 700 !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    .fc-button-primary {
+        background: var(--admin-primary) !important;
+        border-color: var(--admin-primary) !important;
+    }
+
+    .fc-button-primary:hover {
+        background: var(--admin-primary-dark) !important;
+        border-color: var(--admin-primary-dark) !important;
+    }
+
+    .fc-button-primary:disabled {
+        background: var(--admin-text-lighter) !important;
+        border-color: var(--admin-text-lighter) !important;
+        opacity: 0.5;
+    }
+
+    .fc-daygrid-day-number {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--admin-secondary);
+    }
+
+    .fc-daygrid-day {
+        min-height: 80px;
+    }
+
+    .fc-day-today {
+        background: rgba(108, 92, 231, 0.05) !important;
+    }
+
+    .fc-daygrid-day-frame {
+        min-height: 80px !important;
+    }
+
+    .fc-timegrid-slot-label {
+        font-size: 12px !important;
+    }
+
+    .fc-timegrid-axis {
+        font-size: 12px !important;
+    }
+
+    /* Event details in week/day view */
+    .fc-timegrid-event .event-details {
+        font-size: 11px;
+        opacity: 0.9;
+        display: block;
+        margin-top: 2px;
+        color: rgba(255,255,255,0.85);
+    }
+
+    .fc-daygrid-event .event-details {
+        display: none;
+    }
+
+    .fc-timegrid-event .event-client {
+        font-weight: 500;
+    }
+
+    .fc-timegrid-event .event-type {
+        font-size: 10px;
+        opacity: 0.8;
+        display: block;
+    }
+
+    /* Status Legend */
+    .legend {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--admin-text-light);
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    .admin-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 16px 20px;
+        background: var(--admin-card-bg, #ffffff);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .toolbar-left .toolbar-info {
+        font-size: 14px;
+        color: var(--admin-text-light, #636e72);
+    }
+
+    .toolbar-right {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--admin-text-light, #636e72);
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        color: var(--admin-text-lighter, #b2bec3);
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .empty-state p {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    /* Event Popover Modal */
+    .event-popover-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .event-popover-modal.active {
+        display: flex;
+    }
+
+    .event-popover {
+        background: white;
+        border-radius: 12px;
+        padding: 24px 28px;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        position: relative;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .event-popover-close {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: #999;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .event-popover-close:hover {
+        color: #333;
+    }
+
+    .event-popover h3 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #2d3436;
+        padding-right: 30px;
+    }
+
+    .event-popover .detail-row {
+        display: flex;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .event-popover .detail-label {
+        font-weight: 600;
+        color: #636e72;
+        width: 100px;
+        flex-shrink: 0;
+        font-size: 13px;
+    }
+
+    .event-popover .detail-value {
+        color: #2d3436;
+        font-size: 13px;
+        flex: 1;
+    }
+
+    .event-popover .status-badge {
+        display: inline-block;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-badge.pending { background: #fff3cd; color: #856404; }
+    .status-badge.confirmed { background: #d4edda; color: #155724; }
+    .status-badge.cancelled { background: #f8d7da; color: #721c24; }
+    .status-badge.completed { background: #cce5ff; color: #004085; }
+
+    .event-popover .btn-view {
+        display: inline-block;
+        margin-top: 16px;
+        padding: 8px 20px;
+        background: #6c5ce7;
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+        transition: background 0.2s;
+    }
+
+    .event-popover .btn-view:hover {
+        background: #5f3dc4;
+    }
+
+    /* Event tooltip */
+    .fc-event-tooltip {
+        background: white !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        padding: 12px 16px !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+        max-width: 280px !important;
+    }
+
+    .fc-event-tooltip .tooltip-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: #2d3436;
+        margin-bottom: 4px;
+    }
+
+    .fc-event-tooltip .tooltip-detail {
+        font-size: 12px;
+        color: #636e72;
+        margin: 2px 0;
+    }
+
+    .fc-event-tooltip .tooltip-status {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+        .fc-toolbar {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .fc-toolbar-title {
+            font-size: 16px !important;
+        }
+
+        .admin-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .legend {
+            justify-content: center;
+        }
+
+        .event-popover {
+            padding: 20px;
+            max-width: 95%;
+        }
+
+        .event-popover .detail-row {
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .event-popover .detail-label {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .event-popover .detail-value {
+            font-size: 13px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <div class="toolbar-left">
+        <span class="toolbar-info"><i class="fas fa-calendar-alt"></i> {{ events|length }} bookings scheduled</span>
+    </div>
+    <div class="toolbar-right">
+        <div class="legend">
+            <span class="legend-item">
+                <span class="legend-color" style="background: #f39c12;"></span> Pending
+            </span>
+            <span class="legend-item">
+                <span class="legend-color" style="background: #2ecc71;"></span> Confirmed
+            </span>
+            <span class="legend-item">
+                <span class="legend-color" style="background: #e74c3c;"></span> Cancelled
+            </span>
+            <span class="legend-item">
+                <span class="legend-color" style="background: #3498db;"></span> Completed
+            </span>
+        </div>
+    </div>
+</div>
+
+{% if events %}
+    <div id="calendar"></div>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-calendar-plus"></i>
+        <p>No bookings scheduled yet</p>
+        <a href="{{ url_for('admin.bookings') }}" class="btn btn-primary">View All Bookings</a>
+    </div>
+{% endif %}
+
+<!-- Event Popover Modal -->
+<div class="event-popover-modal" id="eventPopover">
+    <div class="event-popover">
+        <button class="event-popover-close" onclick="closeEventPopover()">&times;</button>
+        <div id="eventPopoverContent">
+            <!-- Dynamic content -->
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.toolbar-left .toolbar-info {
+    font-size: 14px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.toolbar-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--admin-text-light);
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: var(--admin-text-lighter, #b2bec3);
+    display: block;
+    margin-bottom: 16px;
+}
+
+.empty-state p {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+
+    if (!calendarEl) return;
+
+    // Get events from template
+    const events = {{ events|tojson|safe }};
+
+    console.log('Events loaded:', events.length);
+
+    // If no events, show message
+    if (!events || events.length === 0) {
+        calendarEl.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-plus"></i><p>No bookings scheduled yet</p></div>';
+        return;
+    }
+
+    // Initialize calendar
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: events,
+        eventClick: function(info) {
+            showEventDetails(info.event);
+        },
+        eventDidMount: function(info) {
+            // Add status class for styling
+            const status = info.event.extendedProps.status;
+            if (status) {
+                info.el.classList.add('fc-event-' + status);
+            }
+
+            // Enhance event display with details for week/day view
+            const props = info.event.extendedProps;
+
+            // For timegrid views (week/day), show more details
+            if (info.view.type === 'timeGridWeek' || info.view.type === 'timeGridDay') {
+                // Add client name and event type to the event display
+                const titleEl = info.el.querySelector('.fc-event-title');
+                if (titleEl) {
+                    // Keep the title but add details as subtext
+                    const detailsSpan = document.createElement('span');
+                    detailsSpan.className = 'event-details';
+                    detailsSpan.innerHTML = `<span class="event-client">${props.client_name || ''}</span> <span class="event-type">${props.event_type || ''}</span>`;
+                    titleEl.appendChild(detailsSpan);
+                }
+            }
+
+            // Add tooltip with event details
+            const tooltipContent = `
+                <div class="tooltip-title">${info.event.title}</div>
+                <div class="tooltip-detail">👤 ${props.client_name || 'N/A'}</div>
+                <div class="tooltip-detail">📋 ${props.event_type || 'N/A'}</div>
+                <div class="tooltip-detail">📞 ${props.phone || 'N/A'}</div>
+                <div class="tooltip-detail">👥 ${props.guests || 'N/A'} guests</div>
+                <div class="tooltip-detail">📍 ${props.location || 'TBD'}</div>
+                <span class="tooltip-status status-${props.status || 'pending'}">${props.status || 'Pending'}</span>
+            `;
+
+            // Use the native title attribute for tooltip
+            info.el.title = `${info.event.title}\nClient: ${props.client_name || 'N/A'}\nEvent: ${props.event_type || 'N/A'}\nStatus: ${props.status || 'Pending'}`;
+        },
+        height: 650,
+        locale: 'en',
+        buttonText: {
+            today: 'Today',
+            month: 'Month',
+            week: 'Week',
+            day: 'Day'
+        },
+        dayMaxEvents: true,
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false
+        },
+        views: {
+            dayGridMonth: {
+                eventDisplay: 'block',
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    meridiem: false
+                }
+            },
+            timeGridWeek: {
+                eventDisplay: 'block',
+                slotDuration: '00:30:00',
+                slotLabelInterval: '01:00',
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    meridiem: false
+                }
+            },
+            timeGridDay: {
+                eventDisplay: 'block',
+                slotDuration: '00:30:00',
+                slotLabelInterval: '01:00',
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    meridiem: false
+                }
+            }
+        },
+        slotLabelFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false
+        },
+        allDaySlot: true,
+        nowIndicator: true
+    });
+
+    calendar.render();
+    console.log('Calendar rendered successfully');
+});
+
+// ============================================================
+// EVENT POPOVER FUNCTIONS
+// ============================================================
+function showEventDetails(event) {
+    const props = event.extendedProps;
+    const statusColors = {
+        'pending': 'pending',
+        'confirmed': 'confirmed',
+        'cancelled': 'cancelled',
+        'completed': 'completed'
+    };
+
+    const statusClass = statusColors[props.status] || 'pending';
+    const statusDisplay = props.status ? props.status.charAt(0).toUpperCase() + props.status.slice(1) : 'Pending';
+
+    const content = document.getElementById('eventPopoverContent');
+    content.innerHTML = `
+        <h3>${event.title}</h3>
+        <div class="detail-row">
+            <span class="detail-label">Status</span>
+            <span class="detail-value"><span class="status-badge ${statusClass}">${statusDisplay}</span></span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Client</span>
+            <span class="detail-value">${props.client_name || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Event Type</span>
+            <span class="detail-value">${props.event_type ? props.event_type.replace('-', ' ').toUpperCase() : 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Date</span>
+            <span class="detail-value">${event.start ? new Date(event.start).toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'TBD'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Time</span>
+            <span class="detail-value">${props.time || 'TBD'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Guests</span>
+            <span class="detail-value">${props.guests || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Location</span>
+            <span class="detail-value">${props.location || 'TBD'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Phone</span>
+            <span class="detail-value">${props.phone || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Email</span>
+            <span class="detail-value">${props.email || 'N/A'}</span>
+        </div>
+        <a href="${event.url}" class="btn-view">View Booking Details</a>
+    `;
+
+    document.getElementById('eventPopover').classList.add('active');
+}
+
+function closeEventPopover() {
+    document.getElementById('eventPopover').classList.remove('active');
+}
+
+// Close popover on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeEventPopover();
+    }
+});
+
+// Close popover on click outside
+document.getElementById('eventPopover').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEventPopover();
+    }
+});
+</script>
+{% endblock %}

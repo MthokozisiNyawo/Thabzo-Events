@@ -1,0 +1,613 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>{{ title }}</h2>
+        <div>
+            <a href="{{ url_for('admin.gallery') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Gallery
+            </a>
+            <a href="{{ url_for('admin.add_gallery_image') }}" class="btn btn-outline-primary">
+                <i class="fas fa-image"></i> Single Upload
+            </a>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <strong>Multiple Image Upload</strong>
+            <p class="mt-2 mb-0">Select multiple images to upload at once. All images will share the same category and settings.</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('admin.add_multiple_gallery_images') }}" id="multipleUploadForm">
+            {{ form.hidden_tag() }}
+
+            <!-- Image Selection -->
+            <div class="form-group">
+                <label for="images">Select Images <span class="required">*</span></label>
+                {{ form.images(class="form-control-file" + (" is-invalid" if form.images.errors else ""), multiple=True, accept="image/*") }}
+                {% if form.images.errors %}
+                    <div class="invalid-feedback">{{ form.images.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">
+                    <i class="fas fa-info-circle"></i> Hold Ctrl (Windows) or Cmd (Mac) to select multiple images.
+                    Allowed formats: JPG, PNG, GIF, WEBP. Max size: 16MB per image.
+                </small>
+            </div>
+
+            <!-- Preview Area -->
+            <div id="imagePreview" class="image-preview-grid" style="display:none;">
+                <h4>Selected Images</h4>
+                <div class="preview-grid" id="previewGrid"></div>
+            </div>
+
+            <!-- Title & Category -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="title">Title (Optional)</label>
+                    {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="e.g., Beautiful Wedding Setup") }}
+                    {% if form.title.errors %}
+                        <div class="invalid-feedback">{{ form.title.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">This title will be applied to all uploaded images.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="category_id">Category <span class="required">*</span></label>
+                    {{ form.category_id(class="form-control" + (" is-invalid" if form.category_id.errors else "")) }}
+                    {% if form.category_id.errors %}
+                        <div class="invalid-feedback">{{ form.category_id.errors[0] }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label for="description">Description (Optional)</label>
+                {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="2", placeholder="Brief description for all images...") }}
+                {% if form.description.errors %}
+                    <div class="invalid-feedback">{{ form.description.errors[0] }}</div>
+                {% endif %}
+                <small class="form-text text-muted">This description will be applied to all uploaded images.</small>
+            </div>
+
+            <!-- Album Selection -->
+            <div class="form-group">
+                <label>Event Album</label>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="album_id">Select Existing Album</label>
+                        {{ form.album_id(class="form-control" + (" is-invalid" if form.album_id.errors else "")) }}
+                        {% if form.album_id.errors %}
+                            <div class="invalid-feedback">{{ form.album_id.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Choose an existing album for these images.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="create_new_album">Create New Album</label>
+                        <div class="form-check">
+                            {{ form.create_new_album(class="form-check-input", id="createNewAlbum") }}
+                            <label class="form-check-label" for="createNewAlbum">Create new album for these images</label>
+                        </div>
+                        <div id="newAlbumField" style="display:none; margin-top: 10px;">
+                            {{ form.album_name(class="form-control", placeholder="Enter new album name") }}
+                            <small class="form-text text-muted">A new album will be created with this name.</small>
+                        </div>
+                        {% if form.create_new_album.errors %}
+                            <div class="invalid-feedback">{{ form.create_new_album.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Display Order & Featured -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="display_order">Starting Display Order</label>
+                    {{ form.display_order(class="form-control" + (" is-invalid" if form.display_order.errors else ""), placeholder="0") }}
+                    {% if form.display_order.errors %}
+                        <div class="invalid-feedback">{{ form.display_order.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Images will be numbered sequentially from this value.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="is_featured">Featured Images</label>
+                    <div class="form-check">
+                        {{ form.is_featured(class="form-check-input") }}
+                        <label class="form-check-label" for="is_featured">Mark all as featured</label>
+                    </div>
+                    {% if form.is_featured.errors %}
+                        <div class="invalid-feedback">{{ form.is_featured.errors[0] }}</div>
+                    {% endif %}
+                    <small class="form-text text-muted">Featured images appear on the homepage.</small>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="uploadBtn">
+                    <i class="fas fa-upload"></i> Upload All Images
+                </button>
+                <a href="{{ url_for('admin.gallery') }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* ========================================
+   IMAGE PREVIEW STYLES
+   ======================================== */
+.image-preview-grid {
+    margin: 20px 0;
+    padding: 20px;
+    background: var(--admin-bg);
+    border-radius: var(--admin-border-radius);
+}
+
+.image-preview-grid h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: var(--admin-secondary);
+}
+
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--admin-border);
+    transition: var(--transition);
+}
+
+.preview-item:hover {
+    border-color: var(--admin-primary);
+    transform: scale(1.02);
+}
+
+.preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-item .preview-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(231, 76, 60, 0.85);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    z-index: 2;
+}
+
+.preview-item .preview-remove:hover {
+    background: #e74c3c;
+    transform: scale(1.1);
+}
+
+.preview-item .preview-index {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.preview-item .preview-filename {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.preview-item .preview-size {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* ========================================
+   ALERT STYLES
+   ======================================== */
+.alert-info {
+    background: var(--admin-info-bg);
+    color: #1a5276;
+    border: 1px solid #aed6f1;
+    padding: 16px 20px;
+    border-radius: var(--admin-border-radius);
+    margin-bottom: 20px;
+}
+
+.alert-info i {
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.alert-info p {
+    margin-top: 8px;
+    margin-left: 32px;
+    margin-bottom: 0;
+}
+
+/* ========================================
+   FORM CHECK STYLES
+   ======================================== */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+}
+
+.form-check-input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--admin-primary);
+}
+
+.form-check-label {
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--admin-text);
+}
+
+#newAlbumField {
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--admin-bg);
+    border-radius: var(--admin-border-radius);
+    border-left: 3px solid var(--admin-primary);
+}
+
+#newAlbumField .form-control {
+    margin-top: 4px;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+    .preview-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+
+    .preview-item .preview-filename {
+        display: none;
+    }
+
+    .preview-item .preview-size {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .preview-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 6px;
+    }
+
+    .preview-item .preview-index {
+        font-size: 8px;
+        padding: 1px 6px;
+    }
+
+    .preview-item .preview-remove {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        top: 2px;
+        right: 2px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // ========================================
+    // IMAGE PREVIEW
+    // ========================================
+    const fileInput = document.getElementById('images');
+    const previewGrid = document.getElementById('previewGrid');
+    const previewContainer = document.getElementById('imagePreview');
+    let uploadedFiles = [];
+
+    fileInput.addEventListener('change', function() {
+        const files = Array.from(this.files);
+
+        if (files.length === 0) {
+            previewContainer.style.display = 'none';
+            previewGrid.innerHTML = '';
+            uploadedFiles = [];
+            return;
+        }
+
+        previewContainer.style.display = 'block';
+        previewGrid.innerHTML = '';
+        uploadedFiles = files;
+
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+            const item = document.createElement('div');
+            item.className = 'preview-item';
+
+            // Remove button
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'preview-remove';
+            removeBtn.innerHTML = '×';
+            removeBtn.dataset.index = index;
+            removeBtn.onclick = function(e) {
+                e.stopPropagation();
+                removeFile(index);
+            };
+
+            // Index badge
+            const indexBadge = document.createElement('div');
+            indexBadge.className = 'preview-index';
+            indexBadge.textContent = `#${index + 1}`;
+
+            // File size
+            const sizeBadge = document.createElement('div');
+            sizeBadge.className = 'preview-size';
+            sizeBadge.textContent = formatFileSize(file.size);
+
+            // Filename
+            const nameBadge = document.createElement('div');
+            nameBadge.className = 'preview-filename';
+            nameBadge.textContent = file.name;
+
+            // Image
+            const img = document.createElement('img');
+            img.alt = file.name;
+
+            reader.onload = function(e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            item.appendChild(img);
+            item.appendChild(removeBtn);
+            item.appendChild(indexBadge);
+            item.appendChild(sizeBadge);
+            item.appendChild(nameBadge);
+            previewGrid.appendChild(item);
+        });
+    });
+
+    function removeFile(index) {
+        uploadedFiles.splice(index, 1);
+
+        // Rebuild preview
+        const items = previewGrid.querySelectorAll('.preview-item');
+        items.forEach((item, i) => {
+            if (i === index) {
+                item.remove();
+            }
+            // Update indices
+            const badge = item.querySelector('.preview-index');
+            if (badge && i > index) {
+                badge.textContent = `#${i}`;
+            }
+        });
+
+        // Update file input
+        updateFileInput();
+
+        if (uploadedFiles.length === 0) {
+            previewContainer.style.display = 'none';
+            previewGrid.innerHTML = '';
+        }
+    }
+
+    function updateFileInput() {
+        const dataTransfer = new DataTransfer();
+        uploadedFiles.forEach(file => dataTransfer.items.add(file));
+        fileInput.files = dataTransfer.files;
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    // ========================================
+    // NEW ALBUM TOGGLE
+    // ========================================
+    const createNewAlbumCheckbox = document.getElementById('createNewAlbum');
+    const newAlbumField = document.getElementById('newAlbumField');
+    const albumSelect = document.getElementById('album_id');
+
+    if (createNewAlbumCheckbox) {
+        createNewAlbumCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                newAlbumField.style.display = 'block';
+                albumSelect.disabled = true;
+                albumSelect.style.opacity = '0.5';
+                albumSelect.style.cursor = 'not-allowed';
+            } else {
+                newAlbumField.style.display = 'none';
+                albumSelect.disabled = false;
+                albumSelect.style.opacity = '1';
+                albumSelect.style.cursor = 'default';
+            }
+        });
+    }
+
+    // ========================================
+    // FORM SUBMIT VALIDATION
+    // ========================================
+    $('#multipleUploadForm').on('submit', function(e) {
+        const files = document.getElementById('images').files;
+        if (files.length === 0) {
+            e.preventDefault();
+            showNotification('Please select at least one image to upload.', 'danger');
+            return false;
+        }
+
+        // Check if album is selected or new album name is provided
+        const albumSelected = parseInt(albumSelect.value) !== 0;
+        const newAlbumChecked = createNewAlbumCheckbox.checked;
+        const newAlbumName = document.getElementById('album_name').value.trim();
+
+        if (!albumSelected && !newAlbumChecked) {
+            e.preventDefault();
+            showNotification('Please select an existing album or create a new one.', 'warning');
+            return false;
+        }
+
+        if (newAlbumChecked && !newAlbumName) {
+            e.preventDefault();
+            showNotification('Please enter a name for the new album.', 'warning');
+            document.getElementById('album_name').focus();
+            return false;
+        }
+
+        // Show loading state
+        const btn = document.getElementById('uploadBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+        btn.disabled = true;
+
+        return true;
+    });
+
+    // ========================================
+    // NOTIFICATION SYSTEM
+    // ========================================
+    function showNotification(message, type) {
+        const alertClass = {
+            success: 'alert-success',
+            danger: 'alert-danger',
+            warning: 'alert-warning',
+            info: 'alert-info'
+        }[type] || 'alert-info';
+
+        const icon = {
+            success: 'fa-check-circle',
+            danger: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        }[type] || 'fa-info-circle';
+
+        const html = `<div class="alert ${alertClass} alert-dismissible fade show" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <i class="fas ${icon}"></i> ${message}
+            <button type="button" class="alert-close" data-dismiss="alert">&times;</button>
+        </div>`;
+
+        $('body').append(html);
+
+        setTimeout(function() {
+            $('.alert').fadeOut(500, function() {
+                $(this).remove();
+            });
+        }, 5000);
+    }
+
+    // ========================================
+    // KEYBOARD SHORTCUTS
+    // ========================================
+    // Clear all images with Escape key
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape' && previewContainer.style.display === 'block') {
+            if (confirm('Clear all selected images?')) {
+                fileInput.value = '';
+                previewContainer.style.display = 'none';
+                previewGrid.innerHTML = '';
+                uploadedFiles = [];
+            }
+        }
+    });
+
+    // ========================================
+    // DRAG AND DROP SUPPORT
+    // ========================================
+    const dropZone = document.querySelector('.form-control-file');
+
+    if (dropZone) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropZone.style.borderColor = 'var(--admin-primary)';
+            dropZone.style.background = 'rgba(108, 92, 231, 0.05)';
+        }
+
+        function unhighlight() {
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+        }
+
+        dropZone.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        }, false);
+    }
+
+    console.log('✅ Multiple image upload form initialized');
+});
+</script>
+{% endblock %}

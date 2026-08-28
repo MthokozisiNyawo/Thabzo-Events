@@ -1,0 +1,329 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Manage Service Levels{% endblock %}
+
+{% block content %}
+<div class="admin-toolbar">
+    <div class="toolbar-left">
+        <span class="toolbar-info">{{ levels|length }} service levels</span>
+        {% if request.args.get('service_id') %}
+            <span class="toolbar-filter">
+                <i class="fas fa-filter"></i> Filtered by service
+                <a href="{{ url_for('admin.service_levels') }}" class="btn btn-sm btn-outline-secondary">Clear Filter</a>
+            </span>
+        {% endif %}
+    </div>
+    <div class="toolbar-right">
+        <a href="{{ url_for('admin.add_service_level') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Service Level
+        </a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Service</th>
+                <th>Price</th>
+                <th>Discount</th>
+                <th>Featured</th>
+                <th>Order</th>
+                <th>Status</th>
+                <th width="150">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for level in levels %}
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        {% if level.icon %}
+                            <i class="fas {{ level.icon }}" style="color: {{ level.color or '#6c5ce7' }};"></i>
+                        {% endif %}
+                        <strong>{{ level.name }}</strong>
+                    </div>
+                </td>
+                <td>
+                    {% if level.service %}
+                        <a href="{{ url_for('admin.edit_service', id=level.service.id) }}" class="service-link">
+                            {{ level.service.name }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">No Service</span>
+                    {% endif %}
+                </td>
+                <td>R{{ "%.2f"|format(level.price) }}</td>
+                <td>{{ level.discount_percentage or 0 }}%</td>
+                <td>
+                    {% if level.is_featured %}
+                        <span class="status-badge status-active">Featured</span>
+                    {% else %}
+                        <span class="status-badge status-inactive">Not Featured</span>
+                    {% endif %}
+                </td>
+                <td>{{ level.display_order }}</td>
+                <td>
+                    {% if level.is_active %}
+                        <span class="status-badge status-active">Active</span>
+                    {% else %}
+                        <span class="status-badge status-inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('admin.edit_service_level', id=level.id) }}" class="btn-action btn-edit" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        {% if level.service %}
+                            <a href="{{ url_for('admin.edit_service', id=level.service.id) }}" class="btn-action btn-info" title="View Service">
+                                <i class="fas fa-concierge-bell"></i>
+                            </a>
+                        {% endif %}
+                        <form method="POST" action="{{ url_for('admin.toggle_service_level', id=level.id) }}" style="display:inline;">
+                            <button type="submit" class="btn-action {% if level.is_active %}btn-warning{% else %}btn-success{% endif %}"
+                                    title="{% if level.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                <i class="fas {% if level.is_active %}fa-pause{% else %}fa-play{% endif %}"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.delete_service_level', id=level.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this service level?')">
+                            <button type="submit" class="btn-action btn-delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="text-center">
+                    <div class="empty-state">
+                        <i class="fas fa-layer-group"></i>
+                        <p>No service levels created yet</p>
+                        <a href="{{ url_for('admin.add_service_level') }}" class="btn btn-primary btn-sm">Add Your First Service Level</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+.admin-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.toolbar-info {
+    font-size: 14px;
+    color: var(--admin-text-light, #636e72);
+}
+
+.toolbar-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--admin-text-light, #636e72);
+    background: var(--admin-bg, #f8f9fa);
+    padding: 4px 12px;
+    border-radius: 50px;
+}
+
+.toolbar-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background: #6c5ce7;
+    color: #fff;
+    border-color: #6c5ce7;
+}
+
+.btn-primary:hover {
+    background: #5f3dc4;
+    border-color: #5f3dc4;
+    color: #fff;
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    color: var(--admin-secondary, #2d3436);
+    border-color: var(--admin-border, #dfe6e9);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.table-responsive {
+    overflow-x: auto;
+    background: var(--admin-card-bg, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 0 20px;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 14px 8px;
+    font-weight: 600;
+    color: var(--admin-text-light, #636e72);
+    border-bottom: 2px solid var(--admin-border, #dfe6e9);
+}
+
+.admin-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--admin-border-light, #f0f0f0);
+    vertical-align: middle;
+}
+
+.admin-table tr:hover {
+    background: var(--admin-bg, #f8f9fa);
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: var(--admin-text-lighter, #b2bec3);
+}
+
+.service-link {
+    color: var(--admin-primary, #6c5ce7);
+    text-decoration: none;
+}
+
+.service-link:hover {
+    text-decoration: underline;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    background: none;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.btn-action:hover {
+    background: var(--admin-bg, #f5f6fa);
+}
+
+.btn-edit { color: #27ae60; }
+.btn-delete { color: #e74c3c; }
+.btn-success { color: #00b894; }
+.btn-warning { color: #fdcb6e; }
+.btn-info { color: #3498db; }
+
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--admin-text-light, #636e72);
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: var(--admin-text-lighter, #b2bec3);
+    display: block;
+    margin-bottom: 12px;
+}
+
+.empty-state p {
+    margin-bottom: 16px;
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    .admin-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar-left {
+        flex-wrap: wrap;
+    }
+
+    .admin-table {
+        font-size: 13px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 8px 6px;
+    }
+}
+</style>
+{% endblock %}
